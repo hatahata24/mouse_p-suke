@@ -58,9 +58,10 @@ typedef union {					//共用体の宣言
 	extern volatile mouse_flags MF;
 #endif
 
-
 #include "main.h"
 #include "eeprom.h"
+#include <stdio.h>
+#include "uart.h"
 
 #include "drive.h"
 #include "sensor.h"

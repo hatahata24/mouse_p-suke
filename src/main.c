@@ -78,39 +78,6 @@ void led_write(uint8_t led1, uint8_t led2, uint8_t led3){
 
 
 
-UART_HandleTypeDef uart_handler;
-HAL_StatusTypeDef uart_init(void){
-
-	/*USART1 GPIO Configuration
-		PA9     ------> USART1_TX
-		PA10    ------> USART1_RX
-	*/
-	GPIO_InitTypeDef gpio_init_struct;
-	gpio_init_struct.Pin = GPIO_PIN_9|GPIO_PIN_10;
-	gpio_init_struct.Mode = GPIO_MODE_AF_PP;
-	gpio_init_struct.Pull = GPIO_PULLUP;
-	gpio_init_struct.Speed = GPIO_SPEED_FREQ_HIGH;
-	gpio_init_struct.Alternate = GPIO_AF7_USART1;
-	HAL_GPIO_Init(GPIOA, &gpio_init_struct);
-
-	__HAL_RCC_USART1_CLK_ENABLE();	// Peripheral clock enable
-
-	uart_handler.Instance = USART1;
-	uart_handler.Init.BaudRate = 38400;
-	uart_handler.Init.WordLength = UART_WORDLENGTH_8B;
-	uart_handler.Init.StopBits = UART_STOPBITS_1;
-	uart_handler.Init.Parity = UART_PARITY_NONE;
-	uart_handler.Init.Mode = UART_MODE_TX_RX;
-	uart_handler.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	uart_handler.Init.OverSampling = UART_OVERSAMPLING_16;
-	uart_handler.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-	uart_handler.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-
-	return HAL_UART_Init(&uart_handler);
-}
-
-
-
 int main(void){
 
 	ms_wait(12);	// 12*8 = 96 ms
@@ -118,10 +85,11 @@ int main(void){
 	sysclk_init();
 
 	gpio_init();
-	uart_init();
+	uart_init(9600);
 
 	ms_wait(100);
 
+	printf("***** WMMC Mouse2018 *****\n");
 
 	sensor_init();
 	drive_init();

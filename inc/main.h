@@ -20,7 +20,4 @@ void ms_wait(uint32_t);
 void gpio_init(void);
 void led_write(uint8_t, uint8_t, uint8_t);
 
-extern UART_HandleTypeDef uart_handler;
-HAL_StatusTypeDef uart_init(void);
-
 #endif /* MAIN_H_ */
