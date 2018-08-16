@@ -3,7 +3,6 @@
 	<name>Mouse2018</name>
 	<comment></comment>
 	<projects>
-		<project>genericboard_hal_lib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
