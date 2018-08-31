@@ -224,6 +224,14 @@ int main(void){
 					break;
 
 				case 4:
+					//----センサチェック----
+					printf("Sensor Check.\n");
+					
+					while(1){
+						printf("ad_l : %d, ad_r : %d, ", ad_l, ad_r);
+						printf("ad_fl : %d, ad_fr : %d\n", ad_fl, ad_fr);
+						ms_wait(500);
+					}
 					break;
 				case 5:
 					break;
