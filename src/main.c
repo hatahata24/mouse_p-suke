@@ -96,6 +96,8 @@ int main(void){
 	search_init();
 
 	int mode = 0;
+	led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+	printf("Mode : %d\n", mode);
 
 	while(1){
 
@@ -106,6 +108,8 @@ int main(void){
 			if(mode > 7){
 				mode = 0;
 			}
+			led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+			printf("Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
 			ms_wait(100);
@@ -114,9 +118,9 @@ int main(void){
 			if(mode < 0){
 				mode = 7;
 			}
+			led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+			printf("Mode : %d\n", mode);
 		}
-
-		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
@@ -125,11 +129,13 @@ int main(void){
 
 				case 0:
 					//----基準値を取る----
+					printf("Get Base Value.\n");
 					get_base();
 					break;
 
 				case 1:
 					//----一次探索走行----
+					printf("First Run.\n");
 					drive_enable_motor();
 
 					MF.FLAG.SCND = 0;
@@ -159,6 +165,7 @@ int main(void){
 
 				case 2:
 					//----一次探索連続走行----
+					printf("First Run. (Continuous)\n");
 					drive_enable_motor();
 
 					MF.FLAG.SCND = 0;
@@ -188,6 +195,7 @@ int main(void){
 
 				case 3:
 					//----二次探索走行----
+					printf("Second Run. (Continuous)\n");
 					drive_enable_motor();
 
 					MF.FLAG.SCND = 1;
