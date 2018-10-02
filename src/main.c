@@ -226,11 +226,29 @@ int main(void){
 				case 4:
 					//----センサチェック----
 					printf("Sensor Check.\n");
-					
-					while(1){
-						printf("ad_l : %d, ad_r : %d, ", ad_l, ad_r);
-						printf("ad_fl : %d, ad_fr : %d\n", ad_fl, ad_fr);
-						ms_wait(500);
+					int i;
+					for(i = 0;; i++){
+						get_wall_info();
+						led_write(wall_info & 0x11, wall_info & 0x88, wall_info & 0x44);
+						if(i % 64 == 0){
+							printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
+							printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
+							if(wall_info & 0x11){
+								printf("Left : [X], ");
+							}else{
+								printf("Left : [ ], ");
+							}
+							if(wall_info & 0x88){
+								printf("Front : [X], ");
+							}else{
+								printf("Front : [ ], ");
+							}
+							if(wall_info & 0x44){
+								printf("Right : [X]\n");
+							}else{
+								printf("Right : [ ]\n");
+							}
+						}
 					}
 					break;
 				case 5:
