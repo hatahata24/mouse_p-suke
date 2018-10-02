@@ -88,5 +88,6 @@ void rotate_R90(void);			//右90回転
 void rotate_L90(void);			//左90回転
 void rotate_180(void);			//180度回転
 void set_position(uint8_t);		//位置合わせ
+void test_run(void);			//テスト走行
 
 #endif /* DRIVE_H_ */

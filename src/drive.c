@@ -397,8 +397,8 @@ void driveC(uint16_t dist){
 void half_sectionA(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	MF.FLAG.CTRL_R = 0;
-	MF.FLAG.CTRL_L = 0;										//片壁制御無効
+//	MF.FLAG.CTRL_R = 0;
+//	MF.FLAG.CTRL_L = 0;										//片壁制御無効
 	driveA(PULSE_SEC_HALF);									//半区画のパルス分加速しながら走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
@@ -440,8 +440,8 @@ void one_sectionU(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
-	MF.FLAG.CTRL_R = 0;
-	MF.FLAG.CTRL_L = 0;										//片壁制御無効
+//	MF.FLAG.CTRL_R = 0;
+//	MF.FLAG.CTRL_L = 0;										//片壁制御無効
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得
 }
@@ -520,4 +520,100 @@ void set_position(uint8_t sw){
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//test_run
+// テスト走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void test_run(void){
 
+	int mode = 0;
+	printf("Test Run, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Run, Mode : %d\n", mode);
+		}
+
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i;
+			switch(mode){
+
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_position(0);
+					break;
+				case 1:
+					//----6区画等速走行----
+					printf("6 Section, Forward, Constant Speed.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					for(i = 0; i < 6; i++){
+						driveC(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
+						drive_wait();
+					}
+					break;
+				case 2:
+					//----右90度回転----
+					printf("Rotate R90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_R90();
+					}
+					break;
+				case 3:
+					//----左90度回転----
+					printf("Rotate L90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_L90();
+					}
+					break;
+				case 4:
+					//----180度回転----
+					printf("Rotate 180.\n");
+					for(i = 0; i < 8; i++){
+						rotate_180();
+					}
+					break;
+				case 5:
+					break;
+				case 6:
+					break;
+				case 7:
+					//----6区画連続走行----
+					printf("6 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 6-1; i++){
+						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
+					}
+					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+
+}

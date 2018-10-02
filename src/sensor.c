@@ -193,16 +193,18 @@ void TIM6_DAC1_IRQHandler(void){
 					dl_tmp += -1 * CTRL_CONT * (dif_r - CTRL_BASE_R);	//比例制御値を決定
 					dr_tmp += CTRL_CONT * (dif_r - CTRL_BASE_R);		//比例制御値を決定
 				}
+
 				//Rに壁なし，Lに壁あり，L壁離れ制御
-				if(dif_l < -1 * CTRL_BASE_L && MF.FLAG.CTRL_L){
-					dl_tmp += CTRL_CONT * (dif_l + CTRL_BASE_L);		//比例制御値を決定
-					dr_tmp += -1 * CTRL_CONT * (dif_l + CTRL_BASE_L);	//比例制御値を決定
-				}
+//				if(dif_l < -1 * CTRL_BASE_L && MF.FLAG.CTRL_L){
+//					dl_tmp += CTRL_CONT * (dif_l + CTRL_BASE_L);		//比例制御値を決定
+//					dr_tmp += -1 * CTRL_CONT * (dif_l + CTRL_BASE_L);	//比例制御値を決定
+//				}
 				//Lに壁なし，Rに壁あり，R壁離れ制御
-				if(dif_r < -1 * CTRL_BASE_R && MF.FLAG.CTRL_R){
-					dl_tmp += -1 * CTRL_CONT * (dif_r + CTRL_BASE_R);	//比例制御値を決定
-					dr_tmp += CTRL_CONT * (dif_r + CTRL_BASE_R);		//比例制御値を決定
-				}
+//				if(dif_r < -1 * CTRL_BASE_R && MF.FLAG.CTRL_R){
+//					dl_tmp += -1 * CTRL_CONT * (dif_r + CTRL_BASE_R);	//比例制御値を決定
+//					dr_tmp += CTRL_CONT * (dif_r + CTRL_BASE_R);		//比例制御値を決定
+//				}
+
 				//一次保存した制御比例値をdlとdrに反映させる
 				dl = max(min(CTRL_MAX, dl_tmp), -1 * CTRL_MAX);
 				dr = max(min(CTRL_MAX, dr_tmp), -1 * CTRL_MAX);
@@ -288,14 +290,17 @@ void get_wall_info(){
 		wall_info |= 0x11;								//壁情報を更新
 	}
 
-	MF.FLAG.CTRL_R = 0;
-	MF.FLAG.CTRL_L = 0;
-	if( (wall_info & 0x44) && ! (wall_info & 0X11) ){
-		MF.FLAG.CTRL_R = 1;
-	}
-	if( ! (wall_info & 0x44) && (wall_info & 0X11) ){
-		MF.FLAG.CTRL_L = 1;
-	}
+//	MF.FLAG.CTRL_R = 0;
+//	MF.FLAG.CTRL_L = 0;
+	//----右に壁があれば右片壁制御を有効化
+//	if( (wall_info & 0x44) && ! (wall_info & 0X11) ){
+//		MF.FLAG.CTRL_R = 1;
+//	}
+	//----左に壁があれば左片壁制御を有効化
+//	if( ! (wall_info & 0x44) && (wall_info & 0X11) ){
+//		MF.FLAG.CTRL_L = 1;
+//	}
+
 }
 
 

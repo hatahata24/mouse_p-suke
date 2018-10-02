@@ -78,6 +78,8 @@ void led_write(uint8_t led1, uint8_t led2, uint8_t led3){
 
 
 
+
+
 int main(void){
 
 	ms_wait(12);	// 12*8 = 96 ms
@@ -96,11 +98,11 @@ int main(void){
 	search_init();
 
 	int mode = 0;
-	led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 	printf("Mode : %d\n", mode);
 
 	while(1){
 
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_INC) );
@@ -108,7 +110,6 @@ int main(void){
 			if(mode > 7){
 				mode = 0;
 			}
-			led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 			printf("Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
@@ -118,7 +119,6 @@ int main(void){
 			if(mode < 0){
 				mode = 7;
 			}
-			led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 			printf("Mode : %d\n", mode);
 		}
 
@@ -234,6 +234,9 @@ int main(void){
 					}
 					break;
 				case 5:
+					//----テスト走行----
+					printf("Test Run.\n");
+					test_run();
 					break;
 				case 6:
 					break;

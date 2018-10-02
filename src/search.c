@@ -82,7 +82,10 @@ void searchA(){
 				break;
 		}
 
+		drive_wait();
 		one_section();										//前進する
+		drive_wait();
+
 		adv_pos();											//マイクロマウス内部位置情報でも前進処理
 		conf_route();										//最短経路で進行可能か判定
 
