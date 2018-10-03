@@ -185,25 +185,14 @@ void TIM6_DAC1_IRQHandler(void){
 				dif_l = (int32_t) ad_l - base_l;
 				dif_r = (int32_t) ad_r - base_r;
 
-				if(CTRL_BASE_L < dif_l){								//制御の判断
-					dl_tmp += CTRL_CONT * (dif_l - CTRL_BASE_L);		//比例制御値を決定
-					dr_tmp += -1 * CTRL_CONT * (dif_l - CTRL_BASE_L);	//比例制御値を決定
+				if(CTRL_BASE_L < dif_l){				//制御の判断
+					dl_tmp += CTRL_CONT * dif_l;		//比例制御値を決定
+					dr_tmp += -1 * CTRL_CONT * dif_l;	//比例制御値を決定
 				}
 				if(CTRL_BASE_R < dif_r){
-					dl_tmp += -1 * CTRL_CONT * (dif_r - CTRL_BASE_R);	//比例制御値を決定
-					dr_tmp += CTRL_CONT * (dif_r - CTRL_BASE_R);		//比例制御値を決定
+					dl_tmp += -1 * CTRL_CONT * dif_r;	//比例制御値を決定
+					dr_tmp += CTRL_CONT * dif_r;		//比例制御値を決定
 				}
-
-				//Rに壁なし，Lに壁あり，L壁離れ制御
-//				if(dif_l < -1 * CTRL_BASE_L && MF.FLAG.CTRL_L){
-//					dl_tmp += CTRL_CONT * (dif_l + CTRL_BASE_L);		//比例制御値を決定
-//					dr_tmp += -1 * CTRL_CONT * (dif_l + CTRL_BASE_L);	//比例制御値を決定
-//				}
-				//Lに壁なし，Rに壁あり，R壁離れ制御
-//				if(dif_r < -1 * CTRL_BASE_R && MF.FLAG.CTRL_R){
-//					dl_tmp += -1 * CTRL_CONT * (dif_r + CTRL_BASE_R);	//比例制御値を決定
-//					dr_tmp += CTRL_CONT * (dif_r + CTRL_BASE_R);		//比例制御値を決定
-//				}
 
 				//一次保存した制御比例値をdlとdrに反映させる
 				dl = max(min(CTRL_MAX, dl_tmp), -1 * CTRL_MAX);
@@ -289,17 +278,6 @@ void get_wall_info(){
 		//AD値が閾値より大きい（=壁があって光が跳ね返ってきている）場合
 		wall_info |= 0x11;								//壁情報を更新
 	}
-
-//	MF.FLAG.CTRL_R = 0;
-//	MF.FLAG.CTRL_L = 0;
-	//----右に壁があれば右片壁制御を有効化
-//	if( (wall_info & 0x44) && ! (wall_info & 0X11) ){
-//		MF.FLAG.CTRL_R = 1;
-//	}
-	//----左に壁があれば左片壁制御を有効化
-//	if( ! (wall_info & 0x44) && (wall_info & 0X11) ){
-//		MF.FLAG.CTRL_L = 1;
-//	}
 
 }
 

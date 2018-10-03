@@ -397,8 +397,6 @@ void driveC(uint16_t dist){
 void half_sectionA(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-//	MF.FLAG.CTRL_R = 0;
-//	MF.FLAG.CTRL_L = 0;										//片壁制御無効
 	driveA(PULSE_SEC_HALF);									//半区画のパルス分加速しながら走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
@@ -440,8 +438,6 @@ void one_sectionU(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
-//	MF.FLAG.CTRL_R = 0;
-//	MF.FLAG.CTRL_L = 0;										//片壁制御無効
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得
 }
