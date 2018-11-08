@@ -226,29 +226,29 @@ int main(void){
 				case 4:
 					//----センサチェック----
 					printf("Sensor Check.\n");
-					int i;
-					for(i = 0;; i++){
+					while(1){
 						get_wall_info();
 						led_write(wall_info & 0x11, wall_info & 0x88, wall_info & 0x44);
-						if(i % 64 == 0){
-							printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
-							printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
-							if(wall_info & 0x11){
-								printf("Left : [X], ");
-							}else{
-								printf("Left : [ ], ");
-							}
-							if(wall_info & 0x88){
-								printf("Front : [X], ");
-							}else{
-								printf("Front : [ ], ");
-							}
-							if(wall_info & 0x44){
-								printf("Right : [X]\n");
-							}else{
-								printf("Right : [ ]\n");
-							}
+
+						printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
+						printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
+						if(wall_info & 0x11){
+							printf("Left : [X], ");
+						}else{
+							printf("Left : [ ], ");
 						}
+						if(wall_info & 0x88){
+							printf("Front : [X], ");
+						}else{
+							printf("Front : [ ], ");
+						}
+						if(wall_info & 0x44){
+							printf("Right : [X]\n");
+						}else{
+							printf("Right : [ ]\n");
+						}
+
+						ms_wait(333);
 					}
 					break;
 				case 5:
