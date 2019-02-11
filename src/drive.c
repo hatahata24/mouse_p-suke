@@ -169,8 +169,6 @@ void TIM1_UP_TIM16_IRQHandler(){
 			}
 		}
 	}
-
-
 	//----デフォルトインターバル----
 	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
 		TIM16->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
@@ -227,8 +225,6 @@ void TIM1_TRG_COM_TIM17_IRQHandler(){
 		}
 
 	}
-
-
 	//----デフォルトインターバル----
 	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
 		TIM17->ARR = DEFAULT_INTERVAL - dr;								//デフォルトインターバルに制御を加えた値に設定
