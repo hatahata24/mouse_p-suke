@@ -131,16 +131,7 @@ int main(void){
 					//セットポジション用
 					printf("Set Position.\n");
 					drive_enable_motor();
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					drive_disable_motor();
 
 					break;
@@ -154,15 +145,7 @@ int main(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchA();
@@ -186,15 +169,7 @@ int main(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchB();
@@ -218,15 +193,7 @@ int main(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchB();

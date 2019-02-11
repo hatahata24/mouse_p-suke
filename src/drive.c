@@ -724,6 +724,24 @@ void set_position(uint8_t sw){
 	drive_wait();
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//set_positionX
+// 機体の尻を左と背後の壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_positionX(uint8_t sw){
+
+	rotate_R90();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+	rotate_L90();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //test_run
@@ -867,16 +885,7 @@ void slalom_run(void){
 					//セットポジション用
 					printf("Set Position.\n");
 					//drive_enable_motor();
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					break;
 
 				case 1:
@@ -889,15 +898,7 @@ void slalom_run(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchC();
@@ -921,15 +922,7 @@ void slalom_run(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchC();
@@ -1060,14 +1053,7 @@ void perfect_run(void){
 					printf("Set Position.\n");
 					//drive_enable_motor();
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX(0);
 
 					break;
 
@@ -1080,15 +1066,7 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchA();
@@ -1112,15 +1090,7 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchB();
@@ -1144,15 +1114,7 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchB();
@@ -1178,15 +1140,7 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchC();
@@ -1210,15 +1164,7 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					get_base();		//Original
 
 					searchC();
