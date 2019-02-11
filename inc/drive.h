@@ -46,16 +46,22 @@
 		#include "table.h"
 	};												//table.hに貼り付けた値を保持する配列
 	volatile int16_t t_cnt_l, t_cnt_r;				//テーブルカウンタ
-	volatile int16_t min_t_cnt, max_t_cnt;			//テーブルカウンタの最低値・最大値
+	volatile int16_t min_t_cnt, str_t_cnt, max_t_cnt;			//テーブルカウンタの最低値・最大値
 	volatile uint16_t pulse_l, pulse_r;				//左右パルスカウンタ
 	volatile int16_t dl, dr;						//比例制御量
+	//volatile uint16_t Kp;
+	volatile uint8_t turn;							//回転方向確認用　1=右回転　2=左回転
+	volatile uint8_t style;								//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
 	extern volatile int16_t t_cnt_l, t_cnt_r;		//符号付き整数型に変更
-	extern volatile int16_t min_t_cnt, max_t_cnt;	//符号付き整数型に変更
+	extern volatile int16_t min_t_cnt, str_t_cnt, max_t_cnt;	//符号付き整数型に変更
 	extern volatile uint16_t pulse_l, pulse_r;
 	extern volatile int16_t	dl, dr;
+	//extern volatile uint16_t Kp;
+	extern volatile uint8_t turn;					//回転方向確認用　1=右回転　2=左回転
+	extern volatile uint8_t style;						//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 #endif
 
 
@@ -78,6 +84,12 @@ void driveA(uint16_t);			//加速走行
 void driveD(uint16_t);			//減速走行
 void driveU(uint16_t);			//等速走行（前の速度を維持）
 void driveC(uint16_t);			//デフォルトインターバルで走行
+void slalomU1(uint16_t);
+void slalomR1(uint16_t);
+void slalomR2(uint16_t);
+void slalomR3(uint16_t);
+void slalomU2(uint16_t);
+
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
@@ -89,5 +101,13 @@ void rotate_L90(void);			//左90回転
 void rotate_180(void);			//180度回転
 void set_position(uint8_t);		//位置合わせ
 void test_run(void);			//テスト走行
+void slalom_R90(void);			//スラローム右90回転
+void slalom_L90(void);			//スラローム左90回転
+
+
+
+void slalom_run(void);			//スラローム走行
+void perfect_run(void);			//本番用走行
+
 
 #endif /* DRIVE_H_ */

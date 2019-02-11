@@ -32,7 +32,7 @@ void sensor_init(void){
 		ADC1の設定
 	----------------*/
 	ADC1->CR = 0;					//ADVREGEN = 0b00, ADEN = 0;
-	ADC1->CR = ADC_CR_ADVREGEN_0;	//ADVREGEN = 0b01, ADEN = 0;
+	ADC1->CR = ADC_CR_ADVREGEN_0;	//ADVREGE1N = 0b01, ADEN = 0;
 
 	ms_wait(1);
 

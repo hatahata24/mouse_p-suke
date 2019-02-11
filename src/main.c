@@ -128,9 +128,21 @@ int main(void){
 			switch(mode){
 
 				case 0:
-					//----基準値を取る----
-					printf("Get Base Value.\n");
-					get_base();
+					//セットポジション用
+					printf("Set Position.\n");
+					drive_enable_motor();
+
+					rotate_R90();
+					drive_wait();
+					set_position(0);
+					drive_wait();
+					rotate_L90();
+					drive_wait();
+					set_position(0);
+					drive_wait();
+
+					drive_disable_motor();
+
 					break;
 
 				case 1:
@@ -150,6 +162,8 @@ int main(void){
 					drive_wait();
 					set_position(0);
 					drive_wait();
+
+					get_base();		//Original
 
 					searchA();
 					ms_wait(500);
@@ -181,6 +195,8 @@ int main(void){
 					set_position(0);
 					drive_wait();
 
+					get_base();		//Original
+
 					searchB();
 					ms_wait(500);
 
@@ -211,6 +227,8 @@ int main(void){
 					set_position(0);
 					drive_wait();
 
+					get_base();		//Original
+
 					searchB();
 					ms_wait(500);
 
@@ -231,8 +249,8 @@ int main(void){
 						led_write(wall_info & 0x11, wall_info & 0x88, wall_info & 0x44);
 
 						printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
-						printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
-						if(wall_info & 0x11){
+						//printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
+						/*if(wall_info & 0x11){
 							printf("Left : [X], ");
 						}else{
 							printf("Left : [ ], ");
@@ -246,19 +264,30 @@ int main(void){
 							printf("Right : [X]\n");
 						}else{
 							printf("Right : [ ]\n");
-						}
+						}*/
 
 						ms_wait(333);
 					}
 					break;
+
 				case 5:
 					//----テスト走行----
 					printf("Test Run.\n");
 					test_run();
 					break;
+
 				case 6:
+					//----一次探索スラローム走行----
+					printf("slalom Run.\n");
+					slalom_run();
 					break;
+
 				case 7:
+					//----本番用走行モード----
+					printf("slalom Run.\n");
+					perfect_run();
+					break;
+
 					break;
 			}
 		}
