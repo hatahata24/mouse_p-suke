@@ -818,6 +818,15 @@ void test_run(void){
 				case 5:
 					break;
 				case 6:
+					//----4区画連続走行----
+					printf("6 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 4-1; i++){
+						driveU(180/(54*3.14/200)*2);	//一区画のパルス分等速走行
+					}
+					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 				case 7:
 					//----4区画連続走行----
