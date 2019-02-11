@@ -292,6 +292,6 @@ int main(void){
 			}
 		}
 
-		ms_wait(100);
+		ms_wait(10000);
 	}
 }
