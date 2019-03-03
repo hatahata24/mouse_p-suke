@@ -128,7 +128,7 @@ int main(void){
 			switch(mode){
 
 				case 0:
-					//セットポジション用
+					//----セットポジション用----
 					printf("Set Position.\n");
 					drive_enable_motor();
 					set_positionX(0);
@@ -137,75 +137,24 @@ int main(void){
 					break;
 
 				case 1:
-					//----一次探索走行----
-					printf("First Run.\n");
-					drive_enable_motor();
+					//----超新地走行----
+					printf("Test Run.\n");
+					simple_run();
 
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					set_positionX(0);
-					get_base();		//Original
-
-					searchA();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchA();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
 					break;
 
 				case 2:
-					//----一次探索連続走行----
-					printf("First Run. (Continuous)\n");
-					drive_enable_motor();
+					//----スラローム走行----
+					printf("slalom Run.\n");
+					slalom_run();
 
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					set_positionX(0);
-					get_base();		//Original
-
-					searchB();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchB();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
 					break;
 
 				case 3:
-					//----二次探索走行----
-					printf("Second Run. (Continuous)\n");
-					drive_enable_motor();
+					//----テスト走行----
+					printf("Test Run.\n");
+					test_run();
 
-					MF.FLAG.SCND = 1;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					set_positionX(0);
-					get_base();		//Original
-
-					searchB();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchB();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
 					break;
 
 				case 4:
@@ -238,15 +187,11 @@ int main(void){
 					break;
 
 				case 5:
-					//----テスト走行----
-					printf("Test Run.\n");
-					test_run();
+
 					break;
 
 				case 6:
-					//----一次探索スラローム走行----
-					printf("slalom Run.\n");
-					slalom_run();
+
 					break;
 
 				case 7:

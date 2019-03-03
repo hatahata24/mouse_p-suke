@@ -99,14 +99,15 @@ void one_sectionU(void);		//等速一区画
 void rotate_R90(void);			//右90回転
 void rotate_L90(void);			//左90回転
 void rotate_180(void);			//180度回転
-void set_position(uint8_t);		//上下位置合わせ
-void set_positionX(uint8_t);	//上下左右位置合わせ
-void test_run(void);			//テスト走行
 void slalom_R90(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
+void set_position(uint8_t);		//上下位置合わせ
+void set_positionX(uint8_t);	//上下左右位置合わせ
 
 
-
+//----走行関数----
+void simple_run(void);			//超新地走行
+void test_run(void);			//テスト走行
 void slalom_run(void);			//スラローム走行
 void perfect_run(void);			//本番用走行
 
