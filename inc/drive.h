@@ -54,6 +54,7 @@
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	volatile uint16_t intere1, intere2, intere3, intere4;
+	volatile float speed, speed_0, speed_min, speed_max, accel;
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
@@ -66,6 +67,7 @@
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	extern volatile uint16_t intere1, intere2, intere3, intere4;
+	extern volatile float speed, speed_0, speed_min, speed_max, accel;
 #endif
 
 
@@ -97,7 +99,9 @@ void slalomU2(uint16_t);
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
+void half_sectionA2(void);		//加速半区画
 void half_sectionD(void);		//減速半区画
+void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_sectionU(void);		//等速一区画
 void rotate_R90(void);			//右90回転
@@ -111,8 +115,8 @@ void set_positionX(uint8_t);	//上下左右位置合わせ
 
 //----走行関数----
 void simple_run(void);			//超新地走行
-void test_run(void);			//テスト走行
 void slalom_run(void);			//スラローム走行
+void test_run(void);			//テスト走行
 void perfect_run(void);			//本番用走行
 
 

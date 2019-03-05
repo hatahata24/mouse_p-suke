@@ -593,6 +593,32 @@ void half_sectionA(void){
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//half_sectionA2
+// 半区画分加速しながら走行する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void half_sectionA2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	speed_0 = 0;
+	speed_min = 0;
+	speed_max = 200;
+	accel = 800;
+
+	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+
+	//----走行----
+	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが指定パルス以上進むまで待機
+
+	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM15->CNT = 0;				// Reset Counter
+
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //half_sectionD
@@ -604,6 +630,39 @@ void half_sectionD(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	driveD(PULSE_SEC_HALF);									//半区画のパルス分減速しながら走行。走行後は停止する
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//half_sectionD2
+// 半区画分減速しながら走行し停止する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void half_sectionD2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+
+	speed_0 = 200;
+	speed_min = 0;
+	speed_max = 300;
+	accel = -1 * 800;
+
+	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+
+	int16_t c_pulse = PULSE_SEC_HALF - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
+	if(c_pulse > 0){
+		//----等速走行----
+		while((pulse_l < c_pulse) || (pulse_r < c_pulse));	//左右のモータが等速分のパルス以上進むまで待機
+	}
+
+	//----減速走行----
+	MF.FLAG.DECL = 1;										//減速フラグをセット
+	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが減速分のパルス以上進むまで待機
+
+	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM15->CNT = 0;				// Reset Counter
+
 }
 
 
