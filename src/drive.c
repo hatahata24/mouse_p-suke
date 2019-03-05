@@ -647,8 +647,6 @@ void rotate_R90(void){
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	//drive_wait();
 	//driveC(PULSE_ROT_R90);									//デフォルトインターバルで指定パルス分回転。回転後に停止する
-	//driveA(PULSE_ROT_R90*0.48);
-	//driveD(PULSE_ROT_R90*0.48);
 	driveA(PULSE_ROT_R90*0.5);
 	driveD(PULSE_ROT_R90*0.5);
 	//drive_wait();
@@ -667,8 +665,6 @@ void rotate_L90(void){
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
 	//drive_wait();
 	//driveC(PULSE_ROT_L90);									//デフォルトインターバルで指定パルス分回転。回転後に停止する
-	//driveA(PULSE_ROT_L90*0.48);
-	//driveD(PULSE_ROT_L90*0.48);
 	driveA(PULSE_ROT_L90*0.5);
 	driveD(PULSE_ROT_L90*0.5);
 	//drive_wait();

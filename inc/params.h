@@ -16,13 +16,13 @@
 		試験導入　物理量系
 ------------------------------------------------------------*/
 
-#define WHEEL_DIAMETER		54
-#define WHEEL_DISTANCE		88
+#define WHEEL_DIAMETER		54									//タイヤ直径
+#define WHEEL_DISTANCE		88									//タイヤ間距離
 
-#define ROUND_STEP			400
-#define ONE_STEP			(WHEEL_DIAMETER*M_PI/ROUND_STEP)
+#define ROUND_STEP			400									//1周当たりのステップ数
+#define ONE_STEP			(WHEEL_DIAMETER*M_PI/ROUND_STEP)	//1ステップ当たりの長さ　0.424mm
 
-#define SEC_HALF			90
+#define SEC_HALF			90									//半区画分の長さ
 
 
 /*------------------------------------------------------------

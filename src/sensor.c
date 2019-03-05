@@ -207,7 +207,12 @@ void TIM6_DAC1_IRQHandler(void){
 	//====タスクポインタを進める====
 	tp = (tp+1) % 3;
 
-	//led_write(1, 0, 0);
+	intere3++;
+	if(intere3 >= 2000 || intere3 <= 200){
+		intere3 = 250;
+	}
+
+	TIM15->ARR = intere3-1;		//タイマカウンタの上限値。取り敢えずDEFAULT_INTERVAL(params.h)に設定
 
 	TIM6->SR &= ~TIM_SR_UIF;
 }
