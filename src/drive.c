@@ -39,24 +39,19 @@ void drive_init(void){
 	--------------------------------------------------------------------*/
 	__HAL_RCC_TIM15_CLK_ENABLE();
 
-	TIM15->CR1 = 0;						//タイマ無効
+	//TIM15->CR1 = 0;						//タイマ無効
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
 	TIM15->CR2 = 0;
 	TIM15->DIER = TIM_DIER_UIE;			//タイマ更新割り込みを有効に
-	//TIM15->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;	//PWMモード1
-	//TIM15->CCER = TIM_CCER_CC1E;		//TIM15_CH1出力をアクティブHighに
-	//TIM15->BDTR = TIM_BDTR_MOE;		//PWM出力を有効に
 
 	TIM15->CNT = 0;						//タイマカウンタ値を0にリセット
-	TIM15->PSC = 63;					//タイマのクロック周波数をシステムクロック/64=1MHzに設定
-	TIM15->ARR = DEFAULT_INTERVAL;		//タイマカウンタの上限値。取り敢えずDEFAULT_INTERVAL(params.h)に設定
-	TIM15->CCR1 = 25;					//タイマカウンタの比較一致値
+	TIM15->PSC = 64-1;					//タイマのクロック周波数をシステムクロック/64=1MHzに設定
+	TIM15->ARR = 1000-1;		//タイマカウンタの上限値。取り敢えずDEFAULT_INTERVAL(params.h)に設定
 
 	TIM15->EGR = TIM_EGR_UG;			//タイマ設定を反映させるためにタイマ更新イベントを起こす
 
 	NVIC_EnableIRQ(TIM1_BRK_TIM15_IRQn);			//タイマ更新割り込みハンドラを有効に
 	NVIC_SetPriority(TIM1_BRK_TIM15_IRQn, 2);	//タイマ更新割り込みの割り込み優先度を設定
-
-	//pin_set_alternate_function(PB4, 1);			//PB4 : TIM16_CH1はAF1に該当
 
 	intere1 = intere2 = 0;
 
@@ -168,19 +163,18 @@ void TIM1_BRK_TIM15_IRQHandler(){
 	if( !(TIM15->SR & TIM_SR_UIF) ){
 		return;
 	}
-/*
+
 	intere1++;
-	if(intere1 >= 5){
+	if(intere1 >= 500){
 		intere1 = 0;
 		led_write(1, 0, 0);
 		if(intere2 == 1){
 			led_write(0, 0, 0);
 			intere2 = 0;
+		}else{
+			intere2 = 1;
 		}
-		intere2 = 1;
-	}*/
-
-	TIM15->ARR = DEFAULT_INTERVAL - dl;
+	}
 
 	TIM15->SR &= ~TIM_SR_UIF;
 }

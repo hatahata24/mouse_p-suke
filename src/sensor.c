@@ -209,21 +209,6 @@ void TIM6_DAC1_IRQHandler(void){
 
 	//led_write(1, 0, 0);
 
-
-	/*intere1++;
-	if(intere1 >= 1000){
-		intere1 = 0;
-		led_write(1, 0, 0);
-		if(intere2 == 1){
-			led_write(0, 0, 0);
-			intere2 = 0;
-		}else{
-			intere2 = 1;
-		}
-	}*/
-
-
-
 	TIM6->SR &= ~TIM_SR_UIF;
 }
 

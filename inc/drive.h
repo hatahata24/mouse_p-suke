@@ -53,7 +53,7 @@
 	volatile uint8_t turn;							//回転方向確認用　1=右回転　2=左回転
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	volatile uint8_t intere1, intere2;
+	volatile uint16_t intere1, intere2;
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
@@ -65,7 +65,7 @@
 	extern volatile uint8_t turn;					//回転方向確認用　1=右回転　2=左回転
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	extern volatile uint8_t intere1, intere2;
+	extern volatile uint16_t intere1, intere2;
 #endif
 
 
