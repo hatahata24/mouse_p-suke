@@ -33,6 +33,34 @@ void drive_init(void){
 	drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
 
 
+	//速度計算用
+	/*--------------------------------------------------------------------
+		TIM15 : 16ビットタイマ。時間計測に使う。出力はなし
+	--------------------------------------------------------------------*/
+	__HAL_RCC_TIM15_CLK_ENABLE();
+
+	TIM15->CR1 = 0;						//タイマ無効
+	TIM15->CR2 = 0;
+	TIM15->DIER = TIM_DIER_UIE;			//タイマ更新割り込みを有効に
+	//TIM15->CCMR1 = TIM_CCMR1_OC1M_2 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1PE;	//PWMモード1
+	//TIM15->CCER = TIM_CCER_CC1E;		//TIM15_CH1出力をアクティブHighに
+	//TIM15->BDTR = TIM_BDTR_MOE;		//PWM出力を有効に
+
+	TIM15->CNT = 0;						//タイマカウンタ値を0にリセット
+	TIM15->PSC = 63;					//タイマのクロック周波数をシステムクロック/64=1MHzに設定
+	TIM15->ARR = DEFAULT_INTERVAL;		//タイマカウンタの上限値。取り敢えずDEFAULT_INTERVAL(params.h)に設定
+	TIM15->CCR1 = 25;					//タイマカウンタの比較一致値
+
+	TIM15->EGR = TIM_EGR_UG;			//タイマ設定を反映させるためにタイマ更新イベントを起こす
+
+	NVIC_EnableIRQ(TIM1_BRK_TIM15_IRQn);			//タイマ更新割り込みハンドラを有効に
+	NVIC_SetPriority(TIM1_BRK_TIM15_IRQn, 2);	//タイマ更新割り込みの割り込み優先度を設定
+
+	//pin_set_alternate_function(PB4, 1);			//PB4 : TIM16_CH1はAF1に該当
+
+	intere1 = intere2 = 0;
+
+
 	//====PWM出力に使うタイマの設定====
 	/*--------------------------------------------------------------------
 		TIM16 : 16ビットタイマ。左モータの制御に使う。出力はTIM16_CH1(PB4)
@@ -57,6 +85,7 @@ void drive_init(void){
 	NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 2);	//タイマ更新割り込みの割り込み優先度を設定
 
 	pin_set_alternate_function(PB4, 1);			//PB4 : TIM16_CH1はAF1に該当
+
 
 	/*--------------------------------------------------------------------
 		TIM17 : 16ビットタイマ。右モータの制御に使う。出力はTIM17_CH1(PB5)
@@ -127,6 +156,46 @@ Clockにはタイマの出力ピンを繋いであるので，タイマの周期
 今加減速のどの段階なのか（table[]の要素番号・インデックス）はt_cnt_l,t_cnt_rで記録している。
 **********/
 
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//TIM1_BRK_TIM15_IRQHandler
+// 16ビットタイマーTIM16の割り込み関数，速度計算用
+// 引数：無し
+// 戻り値：無し
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void TIM1_BRK_TIM15_IRQHandler(){
+
+	if( !(TIM15->SR & TIM_SR_UIF) ){
+		return;
+	}
+
+	intere1++;
+	if(intere1 >= 1000){
+		intere1 = 0;
+		led_write(1, 0, 0);
+		if(intere2 == 1){
+			led_write(0, 0, 0);
+			intere2 = 0;
+		}
+		intere2 = 1;
+	}
+
+	TIM15->ARR = DEFAULT_INTERVAL - dl;
+
+	/*pulse_l++;															//左パルスのカウンタをインクリメント
+	//----デフォルトインターバル----
+	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
+		TIM15->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
+	}
+	//----それ以外の時はテーブルカウンタの指し示すインターバル----
+	else {
+		TIM15->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
+	}*/
+
+	TIM15->SR &= ~TIM_SR_UIF;
+}
+
+
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //TIM1_UP_TIM16_IRQHandler
 // 16ビットタイマーTIM16の割り込み関数，左モータの管理を行う
@@ -179,6 +248,7 @@ void TIM1_UP_TIM16_IRQHandler(){
 	}
 
 	TIM16->SR &= ~TIM_SR_UIF;
+
 }
 
 
@@ -780,7 +850,7 @@ void simple_run(void){
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
-			int i = 0;
+			//int i = 0;
 			switch(mode){
 
 				case 0:

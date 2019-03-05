@@ -187,6 +187,10 @@ int main(void){
 					break;
 
 				case 5:
+					//----タイマ割り込み確認用----
+					printf("Timer Check.\n");
+					TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+					printf("Timer CheckOut.\n");
 
 					break;
 

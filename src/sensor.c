@@ -87,7 +87,7 @@ void sensor_init(void){
 	----------------------------*/
 	pin_set_analog_mode(PIN_VOLTAGE_CHECK);		//PB1 : ADC1_CH12
 
-	pin_set_analog_mode(PIN_SENSOR_FR);			//PA1 : ADC1_CH2
+	pin_set_analog_mode(PIN_SENSOR_FR);			//PA0 : ADC1_CH2
 	pin_set_analog_mode(PIN_SENSOR_R);			//PA2 : ADC1_CH3
 	pin_set_analog_mode(PIN_SENSOR_L);			//PA5 : ADC2_CH2
 	pin_set_analog_mode(PIN_SENSOR_FL);			//PA7 : ADC2_CH4
