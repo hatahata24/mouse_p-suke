@@ -168,9 +168,9 @@ void TIM1_BRK_TIM15_IRQHandler(){
 	if( !(TIM15->SR & TIM_SR_UIF) ){
 		return;
 	}
-
+/*
 	intere1++;
-	if(intere1 >= 1000){
+	if(intere1 >= 5){
 		intere1 = 0;
 		led_write(1, 0, 0);
 		if(intere2 == 1){
@@ -178,19 +178,9 @@ void TIM1_BRK_TIM15_IRQHandler(){
 			intere2 = 0;
 		}
 		intere2 = 1;
-	}
+	}*/
 
 	TIM15->ARR = DEFAULT_INTERVAL - dl;
-
-	/*pulse_l++;															//左パルスのカウンタをインクリメント
-	//----デフォルトインターバル----
-	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
-		TIM15->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
-	}
-	//----それ以外の時はテーブルカウンタの指し示すインターバル----
-	else {
-		TIM15->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
-	}*/
 
 	TIM15->SR &= ~TIM_SR_UIF;
 }
