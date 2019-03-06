@@ -29,7 +29,7 @@
 		走行系
 ------------------------------------------------------------*/
 //----走行パルス関連----
-#define PULSE_SEC_HALF		SEC_HALF/ONE_STEP*2 //206				//半区画走行用パルス。2倍すると1区画分に 208
+#define PULSE_SEC_HALF		SEC_HALF/ONE_STEP*4 //206				//半区画走行用パルス。2倍すると1区画分に 208
 #define PULSE_ROT_R90 		WHEEL_DISTANCE*M_PI/4/ONE_STEP //158		//右90度回転用パルス数 145
 #define	PULSE_ROT_L90 		WHEEL_DISTANCE*M_PI/4/ONE_STEP//158		//左90度回転用パルス数 145
 #define PULSE_ROT_180 		WHEEL_DISTANCE*M_PI/2/ONE_STEP//304//316		//180度回転用パルス数 289
