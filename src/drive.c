@@ -166,16 +166,11 @@ void TIM1_BRK_TIM15_IRQHandler(){
 
 	speed = old_speed + accel * 0.001;
 
+	if(speed > speed_max) speed = speed_max;
+	if(speed < speed_min) speed = speed_min;
+
 	widthL = ONE_STEP / speed * 1000000;
 	widthR = ONE_STEP / speed * 1000000;
-
-	width_max = ONE_STEP / speed_max * 1000000;
-	width_min = ONE_STEP / speed_min * 1000000;
-
-	if(widthL < width_max) widthL = width_max;
-	if(widthR < width_max) widthR = width_max;
-	if(widthL > width_min) widthL = width_min;
-	if(widthR > width_min) widthR = width_min;
 
 	old_speed = speed;
 
@@ -657,22 +652,20 @@ void half_sectionD2(void){
 	speed_max = 300;
 	accel = -400;
 
-	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
 	drive_start();											//走行開始
 
-	/*int16_t c_pulse = PULSE_SEC_HALF - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
+	int16_t c_pulse = PULSE_SEC_HALF - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
 	accel = 0;
 
 	if(c_pulse > 0){
 		//----等速走行----
 		while((pulse_l < c_pulse) || (pulse_r < c_pulse));	//左右のモータが等速分のパルス以上進むまで待機
-	}*/
+	}
 
 	accel = -400;
 
 	//----減速走行----
-	//MF.FLAG.DECL = 1;										//減速フラグをセット
 	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが減速分のパルス以上進むまで待機
 
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
