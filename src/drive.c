@@ -643,19 +643,19 @@ void half_sectionD(void){
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void half_sectionD2(void){
+void half_sectionD2(int16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 
-	speed_0 = 200;
-	speed_min = 50;
-	speed_max = 300;
-	accel = -400;
+	speed_0 = speed_0_p;
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;
 
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
 	drive_start();											//走行開始
 
-	int16_t c_pulse = PULSE_SEC_HALF - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
+	int16_t c_pulse = dist - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
 	accel = 0;
 
 	if(c_pulse > 0){
@@ -663,10 +663,10 @@ void half_sectionD2(void){
 		while((pulse_l < c_pulse) || (pulse_r < c_pulse));	//左右のモータが等速分のパルス以上進むまで待機
 	}
 
-	accel = -400;
+	accel = accel_p;
 
 	//----減速走行----
-	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが減速分のパルス以上進むまで待機
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM15->CNT = 0;				// Reset Counter
@@ -726,9 +726,6 @@ void one_sectionU(void){
 void one_sectionU2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	//speed_0 = 10;
-	//speed_min = 50;
-	//speed_max = 200;
 	accel = 0;
 
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
@@ -765,6 +762,21 @@ void rotate_R90(void){
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_R902
+// 右に90度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_R902(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
+	half_sectionA2(400, 10, 50, 200, PULSE_ROT_R90*0.5);
+	half_sectionD2(-400, 200, 50, 300, PULSE_ROT_R90*0.5);
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_L90
 // 左に90度回転する
 // 引数：なし
@@ -784,6 +796,22 @@ void rotate_L90(void){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_L902
+// 左に90度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_L902(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
+	half_sectionA2(400, 10, 50, 200, PULSE_ROT_R90*0.5);
+	half_sectionD2(-400, 200, 50, 300, PULSE_ROT_R90*0.5);
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_180
 // 180度回転する
 // 引数：なし
@@ -798,6 +826,22 @@ void rotate_180(void){
 	driveA(PULSE_ROT_R90);
 	driveD(PULSE_ROT_R90);
 	//drive_wait();
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_1802
+// 180度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_1802(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_R);								//左に旋回するようモータの回転方向を設定
+	half_sectionA2(400, 10, 50, 200, PULSE_ROT_R90);
+	half_sectionD2(-400, 200, 50, 300, PULSE_ROT_R90);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1286,7 +1330,13 @@ void test_run(void){
 					printf("1 Section, Forward, Continuous.\n");
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					half_sectionA2(400, 10, 50, 200, PULSE_SEC_HALF);
+					//half_sectionA2(400, 10, 50, 200, PULSE_SEC_HALF);
+					//half_sectionD2(-400, 200, 50, 300, PULSE_SEC_HALF);
+					//half_sectionA2(400, 10, 50, 200, PULSE_ROT_R90);
+					//half_sectionD2(-400, 200, 50, 300, PULSE_ROT_R90);
+					rotate_R902();
+					rotate_L902();
+					rotate_1802();
 					//one_sectionU2();
 					//half_sectionD2();
 					//one_section2();

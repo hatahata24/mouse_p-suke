@@ -103,14 +103,17 @@ void slalomU2(uint16_t);
 void half_sectionA(void);		//加速半区画
 void half_sectionA2(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//加速半区画
 void half_sectionD(void);		//減速半区画
-void half_sectionD2(void);		//減速半区画
+void half_sectionD2(int16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_section2(void);			//加減速一区画
 void one_sectionU(void);		//等速一区画
 void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
+void rotate_R902(void);			//右90回転
 void rotate_L90(void);			//左90回転
+void rotate_L902(void);			//左90回転
 void rotate_180(void);			//180度回転
+void rotate_1802(void);			//180度回転
 void slalom_R90(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
 void set_position(uint8_t);		//上下位置合わせ
