@@ -402,7 +402,7 @@ void driveA(uint16_t dist){
 	drive_start();											//走行開始
 
 	//----走行----
-	while(/*(pulse_l < dist) || */(pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
 
 	drive_stop();
 }
@@ -601,20 +601,20 @@ void half_sectionA(void){
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void half_sectionA2(void){
+void half_sectionA2(uint16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	speed_0 = 10;
-	speed_min = 5;
-	speed_max = 200;
-	accel = 400;
+	speed_0 = speed_0_p;
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;
 
 	old_speed = speed_0;
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
 	drive_start();											//走行開始
 
 	//----走行----
-	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが指定パルス以上進むまで待機
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
 
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM15->CNT = 0;				// Reset Counter
@@ -648,7 +648,7 @@ void half_sectionD2(void){
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 
 	speed_0 = 200;
-	speed_min = 5;
+	speed_min = 50;
 	speed_max = 300;
 	accel = -400;
 
@@ -690,6 +690,19 @@ void one_section(void){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//one_section2
+// 1区画分進んで停止する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+/*void one_section2(void){
+
+	half_sectionA2();										//半区画分加速走行
+	half_sectionD2();										//半区画分減速走行のち停止
+}*/
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //one_sectionU
 // 等速で1区画分進む
 // 引数：なし
@@ -701,6 +714,35 @@ void one_sectionU(void){
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
 	driveU(PULSE_SEC_HALF);									//半区画のパルス分等速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//one_sectionU2
+// 等速で1区画分進む
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void one_sectionU2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	//speed_0 = 10;
+	//speed_min = 50;
+	//speed_max = 200;
+	accel = 0;
+
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+	drive_start();											//走行開始
+
+	//----走行----
+	while((pulse_l < PULSE_SEC_HALF*2) || (pulse_r < PULSE_SEC_HALF*2));			//左右のモータが指定パルス以上進むまで待機
+
+	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM15->CNT = 0;				// Reset Counter
+
+	drive_stop();
+
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
 
@@ -1244,8 +1286,10 @@ void test_run(void){
 					printf("1 Section, Forward, Continuous.\n");
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					half_sectionA2();
-					half_sectionD2();
+					half_sectionA2(400, 10, 50, 200, PULSE_SEC_HALF);
+					//one_sectionU2();
+					//half_sectionD2();
+					//one_section2();
 
 					break;
 				case 6:

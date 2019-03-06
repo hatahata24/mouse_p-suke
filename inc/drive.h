@@ -54,7 +54,7 @@
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	volatile uint16_t intere1, intere2, intere3, intere4;
-	volatile float speed, old_speed, widthR, widthL, width_max, width_min;
+	volatile float speed, old_speed, widthR, widthL;
 	volatile float speed_0, speed_min, speed_max, accel;
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
@@ -68,7 +68,7 @@
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	extern volatile uint16_t intere1, intere2, intere3, intere4;
-	extern volatile float speed, old_speed, widthR, widthL, width_max, width_min;
+	extern volatile float speed, old_speed, widthR, widthL;
 	extern volatile float speed_0, speed_min, speed_max, accel;
 #endif
 
@@ -101,11 +101,13 @@ void slalomU2(uint16_t);
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
-void half_sectionA2(void);		//加速半区画
+void half_sectionA2(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//加速半区画
 void half_sectionD(void);		//減速半区画
 void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
+void one_section2(void);			//加減速一区画
 void one_sectionU(void);		//等速一区画
+void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
 void rotate_L90(void);			//左90回転
 void rotate_180(void);			//180度回転
