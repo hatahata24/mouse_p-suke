@@ -29,7 +29,7 @@
 		走行系
 ------------------------------------------------------------*/
 //----走行パルス関連----
-#define PULSE_SEC_HALF		SEC_HALF/ONE_STEP //206				//半区画走行用パルス。2倍すると1区画分に 208
+#define PULSE_SEC_HALF		SEC_HALF/ONE_STEP*2 //206				//半区画走行用パルス。2倍すると1区画分に 208
 #define PULSE_ROT_R90 		WHEEL_DISTANCE*M_PI/4/ONE_STEP //158		//右90度回転用パルス数 145
 #define	PULSE_ROT_L90 		WHEEL_DISTANCE*M_PI/4/ONE_STEP//158		//左90度回転用パルス数 145
 #define PULSE_ROT_180 		WHEEL_DISTANCE*M_PI/2/ONE_STEP//304//316		//180度回転用パルス数 289
@@ -59,7 +59,7 @@
 #define WALL_BASE_FR 	20//30//30		//前壁右センサ
 #define WALL_BASE_FL 	80//100//30		//前壁左センサ
 #define WALL_BASE_R		100		//右壁センサ
-#define WALL_BASE_L 	600     //左壁センサ
+#define WALL_BASE_L 	250     //左壁センサ
 
 //----制御閾値（しきい値）----
 #define CTRL_BASE_L		50//100		//左制御閾値
@@ -78,8 +78,8 @@
 		探索系
 ------------------------------------------------------------*/
 //----ゴール座標----
-#define GOAL_X 9	//7
-#define GOAL_Y 6	//7
+#define GOAL_X 6	//7
+#define GOAL_Y 3	//7
 
 
 #endif /* PARAMS_H_ */

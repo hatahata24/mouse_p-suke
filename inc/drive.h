@@ -54,7 +54,8 @@
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	volatile uint16_t intere1, intere2, intere3, intere4;
-	volatile float speed, speed_0, speed_min, speed_max, accel;
+	volatile float speed, old_speed, widthR, widthL, width_max;
+	volatile float speed_0, speed_min, speed_max, accel;
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
@@ -67,7 +68,8 @@
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	extern volatile uint16_t intere1, intere2, intere3, intere4;
-	extern volatile float speed, speed_0, speed_min, speed_max, accel;
+	extern volatile float speed, old_speed, widthR, widthL, width_max;
+	extern volatile float speed_0, speed_min, speed_max, accel;
 #endif
 
 

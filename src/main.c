@@ -102,7 +102,7 @@ int main(void){
 
 	while(1){
 
-		/*led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_INC) );
@@ -120,7 +120,7 @@ int main(void){
 				mode = 7;
 			}
 			printf("Mode : %d\n", mode);
-		}*/
+		}
 
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);

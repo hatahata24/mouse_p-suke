@@ -164,7 +164,7 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		return;
 	}
 
-	intere1++;
+	/*intere1++;
 	if(intere1 >= 500){
 		intere1 = 0;
 		led_write(1, 0, 0);
@@ -174,7 +174,17 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		}else{
 			intere2 = 1;
 		}
-	}
+	}*/
+
+	speed = old_speed + accel * 0.001;
+
+	widthL = ONE_STEP / speed * 1000000;
+
+	width_max = ONE_STEP / speed_max * 1000000;
+
+	widthL = min(widthL, width_max);
+
+	old_speed = speed;
 
 	TIM15->SR &= ~TIM_SR_UIF;
 }
@@ -193,7 +203,7 @@ void TIM1_UP_TIM16_IRQHandler(){
 	}
 
 	pulse_l++;															//左パルスのカウンタをインクリメント
-
+/*
 	//====加減速処理====
 	//----減速処理----
 	if(MF.FLAG.DECL){													//減速フラグが立っている場合
@@ -230,6 +240,8 @@ void TIM1_UP_TIM16_IRQHandler(){
 	else {
 		TIM16->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
 	}
+*/
+	TIM16->ARR = widthL;								//左モータインターバル設定
 
 	TIM16->SR &= ~TIM_SR_UIF;
 
@@ -313,8 +325,8 @@ void drive_reset_t_cnt(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void drive_start(void){
 
-	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
-	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
+	/*pulse_l = */pulse_r = 0;		//走行したパルス数の初期化
+	//TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
 	TIM17->CR1 |= TIM_CR1_CEN;	// Enable timer
 }
 
@@ -327,9 +339,9 @@ void drive_start(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void drive_stop(void){
 
-	TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	//TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM17->CR1 &= ~TIM_CR1_CEN;	// Disable timer
-	TIM16->CNT = 0;				// Reset Counter
+	//TIM16->CNT = 0;				// Reset Counter
 	TIM17->CNT = 0;				// Reset Counter
 }
 
@@ -400,7 +412,7 @@ void driveA(uint16_t dist){
 	drive_start();											//走行開始
 
 	//----走行----
-	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
+	while(/*(pulse_l < dist) || */(pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
 
 	drive_stop();
 }
@@ -605,16 +617,22 @@ void half_sectionA2(void){
 	speed_0 = 0;
 	speed_min = 0;
 	speed_max = 200;
-	accel = 800;
+	accel = 600;
 
-	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
+	old_speed = speed_0;
+
+	pulse_l = /*pulse_r =*/ 0;		//走行したパルス数の初期化
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
 
 	//----走行----
-	while((pulse_l < PULSE_SEC_HALF) || (pulse_r < PULSE_SEC_HALF));			//左右のモータが指定パルス以上進むまで待機
+	while((pulse_l < PULSE_SEC_HALF)/* || (pulse_r < PULSE_SEC_HALF)*/);			//左右のモータが指定パルス以上進むまで待機
 
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+
 	TIM15->CNT = 0;				// Reset Counter
+	TIM16->CNT = 0;				// Reset Counter
 
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
@@ -1230,6 +1248,14 @@ void test_run(void){
 					}
 					break;
 				case 5:
+					//----半区画加速確認----
+					printf("1 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					//driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					half_sectionA();
+					half_sectionA2();
+
 					break;
 				case 6:
 					//----4区画連続走行----
