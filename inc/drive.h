@@ -107,7 +107,9 @@ void slalomU2(uint16_t);
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
+void half_sectionA2(void);		//加速半区画
 void half_sectionD(void);		//減速半区画
+void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_section2(void);			//加減速一区画
 void one_sectionU(void);		//等速一区画
