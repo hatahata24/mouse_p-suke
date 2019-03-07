@@ -457,7 +457,7 @@ void driveA(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	MF.FLAG.CTRL = 1;										//制御を有効にする
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
 	speed_0 = speed_0_p;
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
@@ -513,9 +513,10 @@ void driveD(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveD2(int16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	MF.FLAG.CTRL = 1;										//制御を有効にする
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
 
 	speed_0 = speed_0_p;
+	//speed_0 = old_speed;
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accel = accel_p;
@@ -569,7 +570,7 @@ void driveU(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveU2(uint16_t dist){
 
-	MF.FLAG.CTRL = 1;										//制御を有効にする
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
 	accel = 0;
 
 	drive_start2();											//走行開始
@@ -649,12 +650,54 @@ void slalomU1(uint16_t dist){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomU12
+// スラローム直線区間1
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomU12(uint16_t dist){
+	//====等速走行開始====
+	MF.FLAG.DECL = 0;
+	MF.FLAG.DEF = 0;
+	MF.FLAG.ACCL = 0;										//加速・減速・デフォルトインターバルフラグをクリア
+	style = 1;													//直線1に入ったことを保存
+	drive_start();											//走行開始
+
+	//====走行====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //slalomR1
 // スラローム回転区間1
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR1(uint16_t dist){
+	style = 2;													//曲線1に入ったことを保存
+	drive_start();											//走行開始
+
+	printf("\n R1start \n\n");
+	//====走行====
+	while((pulse_l + pulse_r)*0.5 < dist);
+
+	printf("\n R1finish \n\n");
+	//====走行終了====
+	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR12
+// スラローム回転区間1
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR12(uint16_t dist){
 	style = 2;													//曲線1に入ったことを保存
 	drive_start();											//走行開始
 
@@ -687,6 +730,24 @@ void slalomR2(uint16_t dist){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR22
+// スラローム回転区間2
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR22(uint16_t dist){
+	style = 3;													//曲線2に入ったことを保存
+	drive_start();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r)*0.5 < dist);
+
+	//====走行終了====
+	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //slalomR3
 // スラローム回転区間3
 // 引数1：dist …… 走行するパルス
@@ -705,12 +766,52 @@ void slalomR3(uint16_t dist){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR32
+// スラローム回転区間3
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR32(uint16_t dist){
+	style = 4;													//曲線3に入ったことを保存
+	drive_start();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r)*0.5 < dist);
+
+	//====走行終了====
+	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //slalomU2
 // スラローム直線区間2
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomU2(uint16_t dist){
+	//====等速走行開始====
+	MF.FLAG.DECL = 0;
+	MF.FLAG.DEF = 0;
+	MF.FLAG.ACCL = 0;										//加速・減速・デフォルトインターバルフラグをクリア
+	style = 5;													//直線2に入ったことを保存
+	drive_start();											//走行開始
+
+	//====走行====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomU22
+// スラローム直線区間2
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomU22(uint16_t dist){
 	//====等速走行開始====
 	MF.FLAG.DECL = 0;
 	MF.FLAG.DEF = 0;
@@ -963,12 +1064,74 @@ void slalom_R90(void){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_R902
+// スラローム右旋回
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_R902(void){
+
+	turn = 0;
+	style = 0;
+	MF.FLAG.SRRM = 1;
+
+	turn = 1;												//右回転を保存する
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU1(SLALOM_U1);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR1(SLALOM_R1);
+	slalomR2(SLALOM_R2);
+	slalomR3(SLALOM_R3);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU2(SLALOM_U2);
+
+	turn = 0;
+	style = 0;
+	MF.FLAG.SRRM = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //slalom_L90
 // スラローム左旋回
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_L90(void){
+
+	turn = 0;
+	style = 0;
+	MF.FLAG.SRRM = 1;
+
+	turn = 2;												//左回転を保存する
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU1(SLALOM_U1);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR1(SLALOM_R1);
+	slalomR2(SLALOM_R2);//-7
+	slalomR3(SLALOM_R3);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU2(SLALOM_U2);//+1
+
+	turn = 0;
+	style = 0;
+	MF.FLAG.SRRM = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_L902
+// スラローム左旋回
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_L902(void){
 
 	turn = 0;
 	style = 0;
