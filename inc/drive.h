@@ -89,8 +89,11 @@ void drive_set_dir(uint8_t);	//進む方向の設定
 //====走行系====
 //----基幹関数----
 void driveA(uint16_t);			//加速走行
+void driveA2(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//加速走行
 void driveD(uint16_t);			//減速走行
+void driveD2(int16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//減速走行
 void driveU(uint16_t);			//等速走行（前の速度を維持）
+void driveU2(uint16_t);			//等速走行（前の速度を維持）
 void driveC(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
 void slalomR1(uint16_t);
@@ -101,13 +104,10 @@ void slalomU2(uint16_t);
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
-void half_sectionA2(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//加速半区画
 void half_sectionD(void);		//減速半区画
-void half_sectionD2(int16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_section2(void);			//加減速一区画
 void one_sectionU(void);		//等速一区画
-void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
 void rotate_R902(void);			//右90回転
 void rotate_L90(void);			//左90回転
@@ -124,6 +124,7 @@ void set_positionX(uint8_t);	//上下左右位置合わせ
 void simple_run(void);			//超新地走行
 void slalom_run(void);			//スラローム走行
 void test_run(void);			//テスト走行
+void test_run2(void);			//テスト走行2
 void perfect_run(void);			//本番用走行
 
 

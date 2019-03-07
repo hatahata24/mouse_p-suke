@@ -158,6 +158,13 @@ int main(void){
 					break;
 
 				case 4:
+					//----テスト走行2----
+					printf("Test Run2.\n");
+					test_run2();
+
+					break;
+
+				case 5:
 					//----センサチェック----
 					printf("Sensor Check.\n");
 					while(1){
@@ -184,13 +191,6 @@ int main(void){
 
 						ms_wait(333);
 					}
-					break;
-
-				case 5:
-					//----タイマ割り込み確認用----
-					printf("Timer Check.\n");
-					TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
-					printf("Timer CheckOut.\n");
 
 					break;
 
