@@ -462,13 +462,14 @@ void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_
 	speed_max = speed_max_p;
 	accel = accel_p;
 
-	old_speed = speed_0;
+	if(MF.FLAG.STRT == 0) old_speed = speed_0;
 	drive_start2();											//走行開始
 
 	//----走行----
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
 
 	drive_stop2();
+	MF.FLAG.STRT = 1;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -530,6 +531,7 @@ void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16
 	//----減速走行----
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
+	MF.FLAG.STRT = 0;
 	drive_stop2();
 }
 
@@ -652,7 +654,7 @@ void slalomU12(uint16_t dist){
 	MF.FLAG.DEF = 0;
 	MF.FLAG.ACCL = 0;										//加速・減速・デフォルトインターバルフラグをクリア
 	style = 1;													//直線1に入ったことを保存
-	drive_start();											//走行開始
+	drive_start2();											//走行開始
 
 	//====走行====
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
@@ -1727,10 +1729,12 @@ void test_run2(void){
 					//----4区画連続走行----
 					printf("4 Section, Forward, Continuous.\n");
 					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
 					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 4-1; i++){
-						one_sectionU2();			//一区画のパルス分等速走行
+					for(i = 0; i < 3-1; i++){
+						//one_sectionU2();			//一区画のパルス分等速走行
+						driveA2(400, 50, 50, 400, PULSE_SEC_HALF*2);			//半区画のパルス分加速しながら走行
 					}
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
