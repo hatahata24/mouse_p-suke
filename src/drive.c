@@ -191,45 +191,47 @@ void TIM1_UP_TIM16_IRQHandler(){
 	}
 
 	pulse_l++;															//左パルスのカウンタをインクリメント
-/*
-	//====加減速処理====
-	//----減速処理----
-	if(MF.FLAG.DECL){													//減速フラグが立っている場合
-		t_cnt_l = max(t_cnt_l - 1, min_t_cnt);
-	}
-	//----加速処理----
-	else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
-		t_cnt_l = min(t_cnt_l + 1, str_t_cnt);
-	}
-	//----スラローム処理----
-	else if(MF.FLAG.SRRM){													//スラロームフラグが立っている場合
-		if(turn == 1){													//turn right
-			if(style == 2){
-				t_cnt_l = min(t_cnt_l + 10, max_t_cnt);
+
+	if(MF.FLAG.OLD){
+		//====加減速処理====
+		//----減速処理----
+		if(MF.FLAG.DECL){													//減速フラグが立っている場合
+			t_cnt_l = max(t_cnt_l - 1, min_t_cnt);
+		}
+		//----加速処理----
+		else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
+			t_cnt_l = min(t_cnt_l + 1, str_t_cnt);
+		}
+		//----スラローム処理----
+		else if(MF.FLAG.SRRM){													//スラロームフラグが立っている場合
+			if(turn == 1){													//turn right
+				if(style == 2){
+					t_cnt_l = min(t_cnt_l + 10, max_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_l = max(t_cnt_l - 10, str_t_cnt);
+				}
 			}
-			if(style == 4){
-				t_cnt_l = max(t_cnt_l - 10, str_t_cnt);
+			if(turn == 2){													//turn left
+				if(style == 2){
+					t_cnt_l = max(t_cnt_l - 10, min_t_cnt);//100
+				}
+				if(style == 4){
+					t_cnt_l = min(t_cnt_l + 10, str_t_cnt);//100
+				}
 			}
 		}
-		if(turn == 2){													//turn left
-			if(style == 2){
-				t_cnt_l = max(t_cnt_l - 10, min_t_cnt);//100
-			}
-			if(style == 4){
-				t_cnt_l = min(t_cnt_l + 10, str_t_cnt);//100
-			}
+		//----デフォルトインターバル----
+		if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
+			TIM16->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
 		}
+		//----それ以外の時はテーブルカウンタの指し示すインターバル----
+		else {
+			TIM16->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
+		}
+	}else{
+		TIM16->ARR = widthL;								//左モータインターバル設定
 	}
-	//----デフォルトインターバル----
-	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
-		TIM16->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
-	}
-	//----それ以外の時はテーブルカウンタの指し示すインターバル----
-	else {
-		TIM16->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
-	}
-*/
-	TIM16->ARR = widthL;								//左モータインターバル設定
 
 	TIM16->SR &= ~TIM_SR_UIF;
 
@@ -249,46 +251,48 @@ void TIM1_TRG_COM_TIM17_IRQHandler(){
 	}
 
 	pulse_r++;															//右パルスのカウンタをインクリメント
-/*
-	//====加減速処理====
-	//----減速処理----
-	if(MF.FLAG.DECL){													//減速フラグが立っている場合
-		t_cnt_r = max(t_cnt_r - 1, min_t_cnt);
-	}
-	//----加速処理----
-	else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
-		t_cnt_r = min(t_cnt_r + 1, str_t_cnt);
-	}
-	//----スラローム処理----
-	else if(MF.FLAG.SRRM){												//スラロームフラグが立っている場合
-		if(turn == 1){													//turn right
-			if(style == 2){
-				t_cnt_r = max(t_cnt_r - 10, min_t_cnt);//100
-			}
-			if(style == 4){
-				t_cnt_r = min(t_cnt_r + 10, str_t_cnt);//100
-			}
-		}
-		if(turn == 2){													//turn left//turn right
-			if(style == 2){
-				t_cnt_r = min(t_cnt_r + 10, max_t_cnt);
-			}
-			if(style == 4){
-				t_cnt_r = max(t_cnt_r - 10, str_t_cnt);
-			}
-		}
 
-	}
-	//----デフォルトインターバル----
-	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
-		TIM17->ARR = DEFAULT_INTERVAL - dr;								//デフォルトインターバルに制御を加えた値に設定
-	}
-	//----それ以外の時はテーブルカウンタの指し示すインターバル----
-	else {
-		TIM17->ARR = table[t_cnt_r] - dr;								//右モータインターバル設定
-	}*/
+	if(MF.FLAG.OLD){
+		//====加減速処理====
+		//----減速処理----
+		if(MF.FLAG.DECL){													//減速フラグが立っている場合
+			t_cnt_r = max(t_cnt_r - 1, min_t_cnt);
+		}
+		//----加速処理----
+		else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
+			t_cnt_r = min(t_cnt_r + 1, str_t_cnt);
+		}
+		//----スラローム処理----
+		else if(MF.FLAG.SRRM){												//スラロームフラグが立っている場合
+			if(turn == 1){													//turn right
+				if(style == 2){
+					t_cnt_r = max(t_cnt_r - 10, min_t_cnt);//100
+				}
+				if(style == 4){
+					t_cnt_r = min(t_cnt_r + 10, str_t_cnt);//100
+				}
+			}
+			if(turn == 2){													//turn left//turn right
+				if(style == 2){
+					t_cnt_r = min(t_cnt_r + 10, max_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_r = max(t_cnt_r - 10, str_t_cnt);
+				}
+			}
 
-	TIM17->ARR = widthR;								//右モータインターバル設定
+		}
+		//----デフォルトインターバル----
+		if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
+			TIM17->ARR = DEFAULT_INTERVAL - dr;								//デフォルトインターバルに制御を加えた値に設定
+		}
+		//----それ以外の時はテーブルカウンタの指し示すインターバル----
+		else {
+			TIM17->ARR = table[t_cnt_r] - dr;								//右モータインターバル設定
+		}
+	}else{
+		TIM17->ARR = widthR;								//右モータインターバル設定
+	}
 
 	TIM17->SR &= ~TIM_SR_UIF;
 }
@@ -318,6 +322,25 @@ void drive_start(void){
 	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
 	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
 	TIM17->CR1 |= TIM_CR1_CEN;	// Enable timer
+	MF.FLAG.OLD = 1;
+
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//drive_start2
+// 走行を開始する
+// （pulse_l,pulse_rを0にリセットしてタイマを有効にする）
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void drive_start2(void){
+
+	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM17->CR1 |= TIM_CR1_CEN;	// Enable timer
+	MF.FLAG.OLD = 0;
+
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -333,6 +356,25 @@ void drive_stop(void){
 	TIM17->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM16->CNT = 0;				// Reset Counter
 	TIM17->CNT = 0;				// Reset Counter
+	MF.FLAG.OLD = 0;
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//drive_stop2
+// 走行を終了する
+// （タイマを止めてタイマカウント値を0にリセットする）
+// 引数1：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void drive_stop2(void){
+
+	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM17->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM15->CNT = 0;				// Reset Counter
+	TIM16->CNT = 0;				// Reset Counter
+	TIM17->CNT = 0;				// Reset Counter
+	MF.FLAG.OLD = 0;
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -413,7 +455,7 @@ void driveA(uint16_t dist){
 // 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void driveA2(uint16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	speed_0 = speed_0_p;
@@ -422,8 +464,7 @@ void driveA2(uint16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t 
 	accel = accel_p;
 
 	old_speed = speed_0;
-	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
-	drive_start();											//走行開始
+	drive_start2();											//走行開始
 
 	//----走行----
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
@@ -431,7 +472,7 @@ void driveA2(uint16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t 
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM15->CNT = 0;				// Reset Counter
 
-	drive_stop();
+	drive_stop2();
 
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
@@ -474,7 +515,7 @@ void driveD(uint16_t dist){
 // 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void driveD2(int16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void driveD2(int16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 
@@ -484,7 +525,7 @@ void driveD2(int16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t s
 	accel = accel_p;
 
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
-	drive_start();											//走行開始
+	drive_start2();											//走行開始
 
 	int16_t c_pulse = dist - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
 	accel = 0;
@@ -502,7 +543,7 @@ void driveD2(int16_t accel_p, uint8_t speed_0_p, uint8_t speed_min_p, uint16_t s
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM15->CNT = 0;				// Reset Counter
 
-	drive_stop();
+	drive_stop2();
 
 }
 
@@ -540,7 +581,7 @@ void driveU2(uint16_t dist){
 	accel = 0;
 
 	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
-	drive_start();											//走行開始
+	drive_start2();											//走行開始
 
 	//----走行----
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
@@ -548,7 +589,7 @@ void driveU2(uint16_t dist){
 	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM15->CNT = 0;				// Reset Counter
 
-	drive_stop();
+	drive_stop2();
 
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
@@ -572,6 +613,28 @@ void driveC(uint16_t dist){
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが定速分のパルス以上進むまで待機
 
 	drive_stop();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//driveC2
+// 指定パルス分デフォルトインターバルで走行して停止する
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void driveC2(uint16_t dist){
+
+	speed_0 = 200;
+	speed_min = 100;
+	speed_max = 300;
+	accel = 0;
+
+	drive_start2();											//走行開始
+
+	//====回転====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが定速分のパルス以上進むまで待機
+
+	drive_stop2();
 }
 
 
@@ -722,11 +785,11 @@ void one_section(void){
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-/*void one_section2(void){
+void one_section2(void){
 
-	driveA2();										//半区画分加速走行
-	driveD2();										//半区画分減速走行のち停止
-}*/
+	driveA2(400, 50, 50, 400, PULSE_SEC_HALF);										//半区画分加速走行
+	driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);										//半区画分減速走行のち停止
+}
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -772,8 +835,8 @@ void rotate_R902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
-	driveA2(400, 10, 50, 200, PULSE_ROT_R90*0.5);
-	driveD2(-400, 200, 50, 300, PULSE_ROT_R90*0.5);
+	driveA2(800, 50, 50, 400, PULSE_ROT_R90*0.5);
+	driveD2(-800, 400, 50, 500, PULSE_ROT_R90*0.5);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -806,8 +869,8 @@ void rotate_L902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
-	driveA2(400, 10, 50, 200, PULSE_ROT_R90*0.5);
-	driveD2(-400, 200, 50, 300, PULSE_ROT_R90*0.5);
+	driveA2(800, 50, 50, 400, PULSE_ROT_R90*0.5);
+	driveD2(-800, 400, 50, 500, PULSE_ROT_R90*0.5);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -841,8 +904,8 @@ void rotate_1802(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//左に旋回するようモータの回転方向を設定
-	driveA2(400, 10, 50, 200, PULSE_ROT_R90);
-	driveD2(-400, 200, 50, 300, PULSE_ROT_R90);
+	driveA2(800, 50, 50, 400, PULSE_ROT_R90);
+	driveD2(-800, 400, 50, 500, PULSE_ROT_R90);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -931,6 +994,28 @@ void set_position(uint8_t sw){
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//set_position2
+// 機体の尻を壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_position2(uint8_t sw){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(BACK);									//後退するようモータの回転方向を設定
+	drive_wait();
+	driveC2(PULSE_SETPOS_BACK);								//尻を当てる程度に後退。回転後に停止する
+	drive_wait();
+	if(sw){
+		get_base();
+	}
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+	drive_wait();
+	driveC2(PULSE_SETPOS_SET);								//デフォルトインターバルで指定パルス分回転。回転後に停止する
+	drive_wait();
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //set_positionX
 // 機体の尻を左と背後の壁に当てて場所を区画中央に合わせる
 // 引数：sw …… 0以外ならget_base()する
@@ -943,6 +1028,25 @@ void set_positionX(uint8_t sw){
 	set_position(sw);
 	drive_wait();
 	rotate_L90();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//set_positionX2
+// 機体の尻を左と背後の壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_positionX2(uint8_t sw){
+
+	rotate_R902();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+	rotate_L902();
 	drive_wait();
 	set_position(sw);
 	drive_wait();
@@ -1316,7 +1420,7 @@ void test_run(void){
 					//----左90度回転----
 					printf("Rotate L90.\n");
 					for(i = 0; i < 16; i++){
-						rotate_R902();				//16回左90度回転、つまり4周回転
+						rotate_L90();				//16回左90度回転、つまり4周回転
 					}
 					break;
 				case 4:
@@ -1327,20 +1431,6 @@ void test_run(void){
 					}
 					break;
 				case 5:
-					//----半区画加減速確認----
-					printf("1 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					//driveA2(400, 10, 50, 200, PULSE_SEC_HALF);
-					//driveD2(-400, 200, 50, 300, PULSE_SEC_HALF);
-					//driveA2(400, 10, 50, 200, PULSE_ROT_R90);
-					//driveD2(-400, 200, 50, 300, PULSE_ROT_R90);
-					rotate_R902();
-					rotate_L902();
-					rotate_1802();
-					//driveU2();
-					//driveD2();
-					//one_section2();
 
 					break;
 				case 6:
@@ -1416,7 +1506,7 @@ void test_run2(void){
 				case 0:
 					//----尻当て----
 					printf("Set Position.\n");
-					set_position(0);
+					set_position2(0);
 					break;
 				case 1:
 					//----4区画等速走行----
@@ -1424,7 +1514,7 @@ void test_run2(void){
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
 					for(i = 0; i < 4; i++){
-						driveC(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
+						driveC2(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
 						drive_wait();
 					}
 					break;
@@ -1450,20 +1540,9 @@ void test_run2(void){
 					}
 					break;
 				case 5:
-					//----半区画加減速確認----
-					printf("1 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					//driveA2(400, 10, 50, 200, PULSE_SEC_HALF);
-					//driveD2(-400, 200, 50, 300, PULSE_SEC_HALF);
-					//driveA2(400, 10, 50, 200, PULSE_ROT_R90);
-					//driveD2(-400, 200, 50, 300, PULSE_ROT_R90);
-					rotate_R902();
-					rotate_L902();
-					rotate_1802();
-					//driveU2();
-					//driveD2();
-					//one_section2();
+					//----尻当てX----
+					printf("Set PositionX.\n");
+					set_positionX2(0);
 
 					break;
 				case 6:
@@ -1471,22 +1550,14 @@ void test_run2(void){
 					printf("4 Section, Forward, Continuous.\n");
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					for(i = 0; i < 4-1; i++){
-						driveU(180/(54*3.14/200)*2);	//一区画のパルス分等速走行
+						driveU2(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
 					}
-					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 				case 7:
-					//----4区画連続走行----
-					printf("4 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 4-1; i++){
-						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
-					}
-					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
 					break;
 			}
 		}

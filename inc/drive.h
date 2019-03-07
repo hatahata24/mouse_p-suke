@@ -83,18 +83,21 @@ void drive_init(void);
 void drive_enable_motor(void);
 void drive_disable_motor(void);
 void drive_start(void);
+void drive_start2(void);
 void drive_stop(void);
+void drive_stop2(void);
 void drive_set_dir(uint8_t);	//進む方向の設定
 
 //====走行系====
 //----基幹関数----
 void driveA(uint16_t);			//加速走行
-void driveA2(uint16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//加速走行
+void driveA2(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);		//加速走行
 void driveD(uint16_t);			//減速走行
-void driveD2(int16_t, uint8_t, uint8_t, uint16_t, uint16_t);		//減速走行
+void driveD2(int16_t, uint16_t, uint16_t, uint16_t, uint16_t);		//減速走行
 void driveU(uint16_t);			//等速走行（前の速度を維持）
 void driveU2(uint16_t);			//等速走行（前の速度を維持）
 void driveC(uint16_t);			//デフォルトインターバルで走行
+void driveC2(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
 void slalomR1(uint16_t);
 void slalomR2(uint16_t);

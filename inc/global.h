@@ -37,7 +37,7 @@ typedef union {					//共用体の宣言
 		uint16_t DECL:1;		//減速フラグ(B5)
 		uint16_t DEF:1;			//デフォルトインターバルフラグ(B6)
 		uint16_t SRRM:1;		//スラロームフラグ(B7)
-		uint16_t CONST:1;		//等速走行フラグ(B8)
+		uint16_t OLD:1;			//旧走行モードフラグ(B8)
 		uint16_t RSV9:1;		//予備ビット(B9)
 		uint16_t RSV10:1;		//予備ビット(B10)
 		uint16_t RSV11:1;		//予備ビット(B11)
