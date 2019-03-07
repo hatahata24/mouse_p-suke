@@ -230,7 +230,7 @@ void TIM1_UP_TIM16_IRQHandler(){
 			TIM16->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
 		}
 	}else{
-		TIM16->ARR = widthL;								//左モータインターバル設定
+		TIM16->ARR = widthL - dl;								//左モータインターバル設定
 	}
 
 	TIM16->SR &= ~TIM_SR_UIF;
@@ -291,7 +291,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(){
 			TIM17->ARR = table[t_cnt_r] - dr;								//右モータインターバル設定
 		}
 	}else{
-		TIM17->ARR = widthR;								//右モータインターバル設定
+		TIM17->ARR = widthR - dr;								//右モータインターバル設定
 	}
 
 	TIM17->SR &= ~TIM_SR_UIF;
@@ -451,7 +451,7 @@ void driveA(uint16_t dist){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveA2
-// 指定パルス分指定加速度で加速しながら走行する
+// 指定パルス分指定加速度で加速走行する
 // 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -473,7 +473,6 @@ void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_
 
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
-
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -508,7 +507,7 @@ void driveD(uint16_t dist){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveD2
-// 指定パルス分指定加速度で加速しながら走行する
+// 指定パルス分指定減速度で減速走行する
 // 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -537,7 +536,6 @@ void driveD2(int16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
 	drive_stop2();
-
 }
 
 
@@ -561,6 +559,7 @@ void driveU(uint16_t dist){
 	//====走行終了====
 	drive_stop();
 }
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveU2
@@ -607,7 +606,7 @@ void driveC(uint16_t dist){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveC2
-// 指定パルス分デフォルトインターバルで走行して停止する
+// 指定パルス分デフォルト速度で走行して停止する
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -752,7 +751,7 @@ void half_sectionA(void){
 void half_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveA2(400, 50, 50, 400, PULSE_SEC_HALF);									//半区画のパルス分加速しながら走行。走行後は停止しない
+	driveA2(400, 50, 50, 400, PULSE_SEC_HALF);				//半区画のパルス分加速しながら走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -777,7 +776,7 @@ void half_sectionD(void){
 void half_sectionD2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);									//半区画のパルス分減速しながら走行。走行後は停止する
+	driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);			//指定パルス分指定減速度で減速走行。走行後は停止する
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -801,8 +800,8 @@ void one_section(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void one_section2(void){
 
-	driveA2(400, 50, 50, 400, PULSE_SEC_HALF);										//半区画分加速走行
-	driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);										//半区画分減速走行のち停止
+	driveA2(400, 50, 50, 400, PULSE_SEC_HALF);				//半区画分加速走行
+	driveD2(-400, 400, 50, 500, PULSE_SEC_HALF);			//半区画分減速走行のち停止
 }
 
 
@@ -851,6 +850,7 @@ void rotate_R90(void){
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
+
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_R902
 // 右に90度回転する
@@ -865,6 +865,7 @@ void rotate_R902(void){
 	driveD2(-800, 400, 50, 500, PULSE_ROT_R90*0.5);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_L90
@@ -900,14 +901,14 @@ void rotate_L902(void){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_180
-// 180度回転する
+// 右180度回転する
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void rotate_180(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	drive_set_dir(ROTATE_R);								//左に旋回するようモータの回転方向を設定
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA(PULSE_ROT_R90);
 	driveD(PULSE_ROT_R90);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
@@ -916,14 +917,14 @@ void rotate_180(void){
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_1802
-// 180度回転する
+// 右180度回転する
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void rotate_1802(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	drive_set_dir(ROTATE_R);								//左に旋回するようモータの回転方向を設定
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA2(800, 50, 50, 400, PULSE_ROT_R90);
 	driveD2(-800, 400, 50, 500, PULSE_ROT_R90);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
@@ -991,6 +992,7 @@ void slalom_L90(void){
 
 }
 
+
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //set_position
 // 機体の尻を壁に当てて場所を区画中央に合わせる
@@ -1013,6 +1015,7 @@ void set_position(uint8_t sw){
 	drive_wait();
 }
 
+
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //set_position2
 // 機体の尻を壁に当てて場所を区画中央に合わせる
@@ -1034,6 +1037,7 @@ void set_position2(uint8_t sw){
 	driveC2(PULSE_SETPOS_SET);								//デフォルトインターバルで指定パルス分回転。回転後に停止する
 	drive_wait();
 }
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //set_positionX
