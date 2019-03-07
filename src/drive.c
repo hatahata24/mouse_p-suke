@@ -1735,6 +1735,44 @@ void test_run2(void){
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 				case 7:
+					//----サンプルコース走行----
+					printf("Sample course Run.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					one_sectionU2();			//一区画のパルス分等速走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 
 					break;
 			}
