@@ -56,6 +56,12 @@
 	volatile uint16_t intere1, intere2, intere3, intere4;
 	volatile float speed, old_speed, widthR, widthL;
 	volatile float speed_0, speed_min, speed_max, accel;
+
+	volatile float speedL, old_speedL;
+	volatile float speedR, old_speedR;
+	volatile float speed_0L, speed_minL, speed_maxL, accelL;
+	volatile float speed_0R, speed_minR, speed_maxR, accelR;
+
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
@@ -70,6 +76,11 @@
 	extern volatile uint16_t intere1, intere2, intere3, intere4;
 	extern volatile float speed, old_speed, widthR, widthL;
 	extern volatile float speed_0, speed_min, speed_max, accel;
+
+	volatile float speedL, old_speedL;
+	volatile float speedR, old_speedR;
+	extern volatile float speed_0L, speed_minL, speed_maxL, accelL;
+	extern volatile float speed_0R, speed_minR, speed_maxR, accelR;
 #endif
 
 
@@ -101,11 +112,11 @@ void driveC2(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
 void slalomU12(uint16_t);
 void slalomR1(uint16_t);
-void slalomR12(uint16_t);
+void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
 void slalomR22(uint16_t);
 void slalomR3(uint16_t);
-void slalomR32(uint16_t);
+void slalomR32(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomU2(uint16_t);
 void slalomU22(uint16_t);
 

@@ -39,7 +39,7 @@ typedef union {					//共用体の宣言
 		uint16_t SRRM:1;		//スラロームフラグ(B7)
 		uint16_t OLD:1;			//旧走行モードフラグ(B8)
 		uint16_t STRT:1;		//走行開始時加速判断フラグ(B9)
-		uint16_t RSV10:1;		//予備ビット(B10)
+		uint16_t TEST:1;		//テストフラグ(B10)
 		uint16_t RSV11:1;		//予備ビット(B11)
 		uint16_t RSV12:1;		//予備ビット(B12)
 		uint16_t RSV13:1;		//予備ビット(B13)

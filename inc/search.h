@@ -77,8 +77,11 @@ struct coordinate_and_direction{
 void search_init(void);
 
 void searchA();											//1区画停止型探索走行
+void searchA2();											//1区画停止型探索走行
 void searchB();											//連続探索走行
+void searchB2();											//連続探索走行
 void searchC();											//スラローム探索走行
+void searchC2();											//スラローム探索走行
 
 void adv_pos();											//マウスの位置情報を前進
 void conf_route();										//次ルートの確認
