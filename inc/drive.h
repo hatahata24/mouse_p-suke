@@ -94,6 +94,7 @@ void drive_start2(void);
 void drive_stop(void);
 void drive_stop2(void);
 void drive_set_dir(uint8_t);	//進む方向の設定
+float dist_pulse(uint16_t);
 
 //====走行系====
 //----基幹関数----
