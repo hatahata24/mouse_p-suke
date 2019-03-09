@@ -54,7 +54,7 @@
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	volatile float speed, old_speed, widthR, widthL;
-	volatile float speed_0, speed_min, speed_max, accel;
+	volatile float speed_min, speed_max, accel;
 
 	volatile float speedL, old_speedL;
 	volatile float speedR, old_speedR;
@@ -72,7 +72,7 @@
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
 	extern volatile float speed, old_speed, widthR, widthL;
-	extern volatile float speed_0, speed_min, speed_max, accel;
+	extern volatile float speed_min, speed_max, accel;
 
 	extern volatile float speedL, old_speedL;
 	extern volatile float speedR, old_speedR;
@@ -98,7 +98,7 @@ void drive_set_dir(uint8_t);	//進む方向の設定
 //====走行系====
 //----基幹関数----
 void driveA(uint16_t);			//加速走行
-void driveA2(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);		//加速走行
+void driveA2(uint16_t, uint16_t, uint16_t, uint16_t);		//加速走行
 void driveD(uint16_t);			//減速走行
 void driveD2(int16_t, uint16_t, uint16_t, uint16_t);		//減速走行
 void driveU(uint16_t);			//等速走行（前の速度を維持）

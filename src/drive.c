@@ -484,17 +484,16 @@ void driveA(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveA2
 // 指定パルス分指定加速度で加速走行する
-// 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
+// 引数1：accel_p 加速度, 引数2：speed_min_p 最低速度, 引数3：speed_max_p 最高速度, 引数4：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void driveA2(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	speed_0 = speed_0_p;
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
 
-	if(MF.FLAG.STRT == 0) old_speed = speed_0;				//最初の加速の際だけold_speedを定義
+	if(MF.FLAG.STRT == 0) old_speed = 100;				//最初の加速の際だけold_speedを定義
 	drive_start2();											//走行開始
 
 	//----走行----
@@ -539,12 +538,12 @@ void driveD(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveD2
 // 指定パルス分指定減速度で減速走行する
-// 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
+// 引数1：accel_p 加速度, 引数2：speed_min_p 最低速度, 引数3：speed_max_p 最高速度, 引数4：dist 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	speed_0 = old_speed;									//直線パルス数を計算するためにTIM15より参照
+	float speed_0 = old_speed;								//直線パルス数を計算するためにTIM15より参照
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
@@ -638,10 +637,9 @@ void driveC(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveC2(uint16_t dist){
 
-	speed_0 = 200;
 	speed_min = 100;
 	speed_max = 300;
-	accel = 0;												//200mm/sの定速走行
+	accel = 0;												//100mm/sの定速走行
 
 	drive_start2();											//走行開始
 
@@ -881,7 +879,7 @@ void half_sectionA(void){
 void half_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveA2(800, 100, 100, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行。走行後は停止しない
+	driveA2(800, 100, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -991,7 +989,7 @@ void rotate_R902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
-	driveA2(800, 50, 50, 400, PULSE_ROT_R90*0.5);
+	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
 	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
@@ -1023,7 +1021,7 @@ void rotate_L902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
-	driveA2(800, 50, 50, 400, PULSE_ROT_R90*0.5);
+	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
 	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
@@ -1055,7 +1053,7 @@ void rotate_1802(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
-	driveA2(800, 50, 50, 400, PULSE_ROT_R90);
+	driveA2(800, 50, 400, PULSE_ROT_R90);
 	driveD2(-800, 50, 500, PULSE_ROT_R90);
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
@@ -1814,10 +1812,10 @@ void test_run2(void){
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					get_base();
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					for(i = 0; i < 3-1; i++){
 						//one_sectionU2();			//一区画のパルス分等速走行
-						driveA2(400, 50, 50, 400, PULSE_SEC_HALF*2);			//半区画のパルス分加速しながら走行
+						driveA2(400, 50, 400, PULSE_SEC_HALF*2);			//半区画のパルス分加速しながら走行
 					}
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
@@ -1827,35 +1825,35 @@ void test_run2(void){
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					get_base();
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					for(i = 0; i < 3-1; i++){
 						one_sectionU2();			//一区画のパルス分等速走行
 					}
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_R902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					one_sectionU2();			//一区画のパルス分等速走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_R902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_R902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_L902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_L902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_R902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_L902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					rotate_L902();
-					driveA2(400, 50, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 					for(i = 0; i < 3-1; i++){
 						one_sectionU2();			//一区画のパルス分等速走行
 					}
