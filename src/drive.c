@@ -168,16 +168,23 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		speedL = old_speedL + accelL * 0.001;
 		speedR = old_speedR + accelR * 0.001;
 
-		if(speedL > speed_max) speedL = speed_max;
-		if(speedR > speed_max) speedR = speed_max;
-		if(speedL < speed_min) speedL = speed_min;
-		if(speedR < speed_min) speedR = speed_min;
+		if(target_flag != 1){
+			if(speedL > speed_max) speedL = speed_max;
+			if(speedR > speed_max) speedR = speed_max;
+			if(speedL < speed_min) speedL = speed_min;
+			if(speedR < speed_min) speedR = speed_min;
+		}else{
+			if(speedL < target) speedL = target;
+			if(speedR > target) speedR = target;
+		}
 
 		widthL = ONE_STEP / speedL * 1000000;
 		widthR = ONE_STEP / speedR * 1000000;
 
 		old_speedL = speedL;
 		old_speedR = speedR;
+
+		//old_speed = 0.5* (old_speedL + old_speedR);
 
 	}else{
 		speed = old_speed + accel * 0.001;
@@ -773,6 +780,10 @@ void slalomR12(uint16_t accelL_p, uint16_t accelR_p, uint16_t speed_0_p,
 		uint16_t speed_min_p, uint16_t speed_max_p, uint16_t distL, uint16_t distR){
 	//style = 2;													//曲線1に入ったことを保存
 	MF.FLAG.TEST = 1;
+	target_flag = 0;
+
+	old_speedL = old_speed;
+	old_speedR = old_speed;
 
 	speed_0 = speed_0_p;
 	speed_min = speed_min_p;
@@ -856,12 +867,13 @@ void slalomR3(uint16_t dist){
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR32(uint16_t accelL_p, uint16_t accelR_p, uint16_t speed_0_p,
+void slalomR32(uint16_t accelL_p, uint16_t accelR_p, uint16_t target_p,
 		uint16_t speed_min_p, uint16_t speed_max_p, uint16_t distL, uint16_t distR){
 	//style = 4;													//曲線3に入ったことを保存
 	MF.FLAG.TEST = 1;
 
-	speed_0 = speed_0_p;
+	target = target_p;
+	target_flag = 1;
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accelL = accelL_p;
@@ -875,6 +887,7 @@ void slalomR32(uint16_t accelL_p, uint16_t accelR_p, uint16_t speed_0_p,
 	//====走行終了====
 	drive_stop2();
 	MF.FLAG.TEST = 0;
+	target_flag = 0;
 }
 
 
@@ -969,7 +982,7 @@ void half_sectionD(void){
 void half_sectionD2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveD2(-800, 50, 500, PULSE_SEC_HALF);			//指定パルス分指定減速度で減速走行。走行後は停止する
+	driveD2(-800, 50, 600, PULSE_SEC_HALF);			//指定パルス分指定減速度で減速走行。走行後は停止する
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -1163,25 +1176,25 @@ void slalom_R90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_R902(void){
 
-	turn = 0;
-	style = 0;
-	MF.FLAG.SRRM = 1;
+	//turn = 0;
+	//style = 0;
+	//MF.FLAG.SRRM = 1;
 
-	turn = 1;												//右回転を保存する
-	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU12(SLALOM_U1);
-	MF.FLAG.CTRL = 0;										//制御を無効にする
-	slalomR12(400, -400, 400, 200, 600, 80, 20);
-	slalomR22(SLALOM_R2);
-	slalomR32(-400, 400, 400, 200, 600, 20, 80);
+	//turn = 1;												//右回転を保存する
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
+	//slalomU12(SLALOM_U1);
+	//MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR12(100, -100, 400, 200, 600, 80*700, 20*700);
+	//slalomR22(SLALOM_R2);
+	//slalomR32(-800, 800, 400, 200, 600, 20, 80);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
-	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU22(SLALOM_U2);
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
+	//slalomU22(SLALOM_U2);
 
-	turn = 0;
-	style = 0;
-	MF.FLAG.SRRM = 0;
-	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+	//turn = 0;
+	//style = 0;
+	//MF.FLAG.SRRM = 0;
+	//get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
 

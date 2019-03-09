@@ -61,6 +61,7 @@
 	volatile float speedR, old_speedR;
 	volatile float speed_0L, speed_minL, speed_maxL, accelL;
 	volatile float speed_0R, speed_minR, speed_maxR, accelR;
+	volatile float target, target_flag;
 
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
@@ -77,10 +78,11 @@
 	extern volatile float speed, old_speed, widthR, widthL;
 	extern volatile float speed_0, speed_min, speed_max, accel;
 
-	volatile float speedL, old_speedL;
-	volatile float speedR, old_speedR;
+	extern volatile float speedL, old_speedL;
+	extern volatile float speedR, old_speedR;
 	extern volatile float speed_0L, speed_minL, speed_maxL, accelL;
 	extern volatile float speed_0R, speed_minR, speed_maxR, accelR;
+	extern volatile float target, target_flag;
 #endif
 
 
@@ -113,6 +115,7 @@ void slalomU1(uint16_t);
 void slalomU12(uint16_t);
 void slalomR1(uint16_t);
 void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR13(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
 void slalomR22(uint16_t);
 void slalomR3(uint16_t);
