@@ -53,14 +53,11 @@
 	volatile uint8_t turn;							//回転方向確認用　1=右回転　2=左回転
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	volatile uint16_t intere1, intere2, intere3, intere4;
 	volatile float speed, old_speed, widthR, widthL;
 	volatile float speed_0, speed_min, speed_max, accel;
 
 	volatile float speedL, old_speedL;
 	volatile float speedR, old_speedR;
-	volatile float speed_0L, speed_minL, speed_maxL, accelL;
-	volatile float speed_0R, speed_minR, speed_maxR, accelR;
 	volatile float target, target_flag;
 
 #else												//main.c以外からこのファイルが呼ばれている場合
@@ -74,14 +71,11 @@
 	extern volatile uint8_t turn;					//回転方向確認用　1=右回転　2=左回転
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	extern volatile uint16_t intere1, intere2, intere3, intere4;
 	extern volatile float speed, old_speed, widthR, widthL;
 	extern volatile float speed_0, speed_min, speed_max, accel;
 
 	extern volatile float speedL, old_speedL;
 	extern volatile float speedR, old_speedR;
-	extern volatile float speed_0L, speed_minL, speed_maxL, accelL;
-	extern volatile float speed_0R, speed_minR, speed_maxR, accelR;
 	extern volatile float target, target_flag;
 #endif
 
@@ -114,7 +108,7 @@ void driveC2(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
 void slalomU12(uint16_t);
 void slalomR1(uint16_t);
-void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
 void slalomR22(uint16_t);
 void slalomR3(uint16_t);
@@ -131,6 +125,7 @@ void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_section2(void);		//加減速一区画
 void one_sectionU(void);		//等速一区画
+void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
 void rotate_R902(void);			//右90回転
 void rotate_L90(void);			//左90回転
@@ -139,7 +134,6 @@ void rotate_180(void);			//180度回転
 void rotate_1802(void);			//180度回転
 void slalom_R90(void);			//スラローム右90回転
 void slalom_R902(void);			//スラローム右90回転
-void slalom_R903(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
 void slalom_L902(void);			//スラローム左90回転
 void set_position(uint8_t);		//上下位置合わせ

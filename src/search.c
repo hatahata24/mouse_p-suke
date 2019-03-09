@@ -406,6 +406,79 @@ void searchC(void){
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//searchC2
+// スラローム走行でgoal座標に進む
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void searchC2(void){
+
+	if(MF.FLAG.SCND){
+		load_map_from_eeprom();
+	}
+
+	//====スタート位置壁情報取得====
+	get_wall_info();										//壁情報の初期化, 後壁はなくなる
+	wall_info &= ~0x88;										//前壁は存在するはずがないので削除する
+	write_map();											//壁情報を地図に記入
+
+	//====前に壁が無い想定で問答無用で前進====
+	half_sectionA2();
+	adv_pos();
+
+	//====歩数マップ・経路作成====
+	write_map();											//壁情報を地図に記入
+	r_cnt = 0;												//経路カウンタの初期化
+	make_smap();											//歩数マップ作成
+	make_route();											//最短経路探索（route配列に動作が格納される）
+
+	//====探索走行====
+	do{
+		//----進行----
+		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
+			//----前進----
+			case 0x88:
+				one_sectionU2();
+				break;
+			//----右折スラローム----
+			case 0x44:
+				slalom_R902();
+
+				break;
+			//----180回転----
+			case 0x22:
+				half_sectionD2();
+				rotate_1802();
+				turn_dir(DIR_TURN_180);
+				if(wall_info & 0x88){
+					set_position2(0);
+				}
+				half_sectionA2();
+				break;
+			//----左折スラローム----
+			case 0x11:
+				slalom_L902();
+				break;
+		}
+		adv_pos();
+		conf_route();
+
+	}while((mouse.x != goal_x) || (mouse.y != goal_y));
+
+	half_sectionD2();
+
+	ms_wait(2000);
+	rotate_1802();											//180度回転
+	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
+
+	if( ! MF.FLAG.SCND){
+		store_map_in_eeprom();
+	}
+
+}
+
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //adv_pos
