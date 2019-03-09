@@ -36,7 +36,7 @@ typedef union {					//共用体の宣言
 		uint16_t ACCL:1;		//加速フラグ(B4)
 		uint16_t DECL:1;		//減速フラグ(B5)
 		uint16_t DEF:1;			//デフォルトインターバルフラグ(B6)
-		uint16_t SRRM:1;		//スラロームフラグ(B7)
+		uint16_t SLLM:1;		//スラロームフラグ(B7)
 		uint16_t OLD:1;			//旧走行モードフラグ(B8)
 		uint16_t STRT:1;		//走行開始時加速判断フラグ(B9)
 		uint16_t TEST:1;		//テストフラグ(B10)

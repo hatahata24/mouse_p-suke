@@ -164,7 +164,7 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		return;
 	}
 
-	if(MF.FLAG.TEST2){
+	if(MF.FLAG.SLLM){
 		speedL = old_speedL + accel * 0.001;
 		speedR = old_speedR - accel * 0.001;
 
@@ -226,7 +226,7 @@ void TIM1_UP_TIM16_IRQHandler(){
 			t_cnt_l = min(t_cnt_l + 1, str_t_cnt);
 		}
 		//----スラローム処理----
-		else if(MF.FLAG.SRRM){													//スラロームフラグが立っている場合
+		else if(MF.FLAG.SLLM){													//スラロームフラグが立っている場合
 			if(turn == 1){													//turn right
 				if(style == 2){
 					t_cnt_l = min(t_cnt_l + 10, max_t_cnt);
@@ -286,7 +286,7 @@ void TIM1_TRG_COM_TIM17_IRQHandler(){
 			t_cnt_r = min(t_cnt_r + 1, str_t_cnt);
 		}
 		//----スラローム処理----
-		else if(MF.FLAG.SRRM){												//スラロームフラグが立っている場合
+		else if(MF.FLAG.SLLM){												//スラロームフラグが立っている場合
 			if(turn == 1){													//turn right
 				if(style == 2){
 					t_cnt_r = max(t_cnt_r - 10, min_t_cnt);//100
@@ -672,9 +672,12 @@ void slalomU1(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomU12(uint16_t dist){
+	target_flag = 0;
+
+	old_speedL = old_speed;
+	old_speedR = old_speed;
 
 	accel = 0;
-	//style = 1;													//直線1に入ったことを保存
 	drive_start2();											//走行開始
 
 	//====走行====
@@ -712,13 +715,6 @@ void slalomR1(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR12(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
-	//style = 2;													//曲線1に入ったことを保存
-	MF.FLAG.TEST = 0;
-	MF.FLAG.TEST2 = 1;
-	target_flag = 0;
-
-	old_speedL = old_speed;
-	old_speedR = old_speed;
 
 	speed_0 = speed_0_p;
 	speed_min = speed_min_p;
@@ -732,7 +728,6 @@ void slalomR12(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint1
 
 	//====走行終了====
 	drive_stop2();
-	MF.FLAG.TEST2 = 0;
 }
 
 
@@ -761,10 +756,7 @@ void slalomR2(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR22(uint16_t dist){
-	accelL = 0;
-	accelR = 0;
-	//style = 3;													//曲線2に入ったことを保存
-	MF.FLAG.TEST2 = 1;
+	accel = 0;
 	drive_start2();											//走行開始
 
 	//====走行====
@@ -772,7 +764,6 @@ void slalomR22(uint16_t dist){
 
 	//====走行終了====
 	drive_stop();
-	MF.FLAG.TEST2 = 0;
 }
 
 
@@ -801,8 +792,6 @@ void slalomR3(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR32(int16_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
-	//style = 4;													//曲線3に入ったことを保存
-	MF.FLAG.TEST2 = 1;
 
 	target = target_p;
 	target_flag = 1;
@@ -817,7 +806,6 @@ void slalomR32(int16_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_
 
 	//====走行終了====
 	drive_stop2();
-	MF.FLAG.TEST2 = 0;
 	target_flag = 0;
 }
 
@@ -852,7 +840,6 @@ void slalomU2(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomU22(uint16_t dist){
 	accel = 0;
-	//style = 5;													//直線2に入ったことを保存
 	drive_start2();											//走行開始
 
 	//====走行====
@@ -1078,7 +1065,7 @@ void slalom_R90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
 
 	turn = 1;												//右回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1093,7 +1080,7 @@ void slalom_R90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1107,7 +1094,7 @@ void slalom_R90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_R902(void){
 
-	//MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU12(SLALOM_U1);
@@ -1119,7 +1106,7 @@ void slalom_R902(void){
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU22(SLALOM_U2);
 
-	//MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1135,7 +1122,7 @@ void slalom_L90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
 
 	turn = 2;												//左回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1150,7 +1137,7 @@ void slalom_L90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1166,7 +1153,7 @@ void slalom_L902(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
 
 	turn = 2;												//左回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1181,7 +1168,7 @@ void slalom_L902(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1512,7 +1499,7 @@ void slalom_run(void){
 					printf("First Run. (Slalom)\n");
 					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1536,7 +1523,7 @@ void slalom_run(void){
 					printf("Second Run. (Slalom)\n");
 					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1738,7 +1725,7 @@ void test_run(void){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
-//test_run
+//test_run2
 // テスト走行モード
 // 引数：なし
 // 戻り値：なし
@@ -2013,7 +2000,7 @@ void perfect_run(void){
 					printf("First Run. (Slalom)\n");
 					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = 7;
 					goal_y = 7;
@@ -2037,7 +2024,7 @@ void perfect_run(void){
 					printf("Second Run. (Slalom)\n");
 					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = 7;
 					goal_y = 7;
