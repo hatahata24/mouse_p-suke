@@ -186,6 +186,21 @@ void TIM1_BRK_TIM15_IRQHandler(){
 
 		//old_speed = 0.5* (old_speedL + old_speedR);
 
+	}else if(MF.FLAG.TEST2){
+		speedL = old_speedL + accel * 0.001;
+		speedR = old_speedR - accel * 0.001;
+
+		if(speedL > speed_max) speedL = speed_max;
+		if(speedR > speed_max) speedR = speed_max;
+		if(speedL < speed_min) speedL = speed_min;
+		if(speedR < speed_min) speedR = speed_min;
+
+		widthL = ONE_STEP / speedL * 1000000;
+		widthR = ONE_STEP / speedR * 1000000;
+
+		old_speedL = speedL;
+		old_speedR = speedR;
+
 	}else{
 		speed = old_speed + accel * 0.001;
 
@@ -804,6 +819,37 @@ void slalomR12(uint16_t accelL_p, uint16_t accelR_p, uint16_t speed_0_p,
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR13
+// スラローム回転区間1
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR13(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+	//style = 2;													//曲線1に入ったことを保存
+	MF.FLAG.TEST = 0;
+	MF.FLAG.TEST2 = 1;
+	target_flag = 0;
+
+	old_speedL = old_speed;
+	old_speedR = old_speed;
+
+	speed_0 = speed_0_p;
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;
+
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r) * 0.5 < dist);			//左右のモータが指定パルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();
+	MF.FLAG.TEST2 = 0;
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //slalomR2
 // スラローム回転区間2
 // 引数1：dist …… 走行するパルス
@@ -831,7 +877,7 @@ void slalomR22(uint16_t dist){
 	accelL = 0;
 	accelR = 0;
 	//style = 3;													//曲線2に入ったことを保存
-	MF.FLAG.TEST = 1;
+	MF.FLAG.TEST2 = 1;
 	drive_start2();											//走行開始
 
 	//====走行====
@@ -839,7 +885,7 @@ void slalomR22(uint16_t dist){
 
 	//====走行終了====
 	drive_stop();
-	MF.FLAG.TEST = 0;
+	MF.FLAG.TEST2 = 0;
 }
 
 
@@ -1186,6 +1232,37 @@ void slalom_R902(void){
 	//MF.FLAG.CTRL = 0;										//制御を無効にする
 	slalomR12(100, -100, 400, 200, 600, 80*700, 20*700);
 	//slalomR22(SLALOM_R2);
+	//slalomR32(-800, 800, 400, 200, 600, 20, 80);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
+	//slalomU22(SLALOM_U2);
+
+	//turn = 0;
+	//style = 0;
+	//MF.FLAG.SRRM = 0;
+	//get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_R903
+// スラローム右旋回
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_R903(void){
+
+	//turn = 0;
+	//style = 0;
+	//MF.FLAG.SRRM = 1;
+
+	//turn = 1;												//右回転を保存する
+	//MF.FLAG.CTRL = 1;										//制御を有効にする
+	//slalomU12(SLALOM_U1);
+	//MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR13(2000, 400, 200, 600, SLALOM_R1*2);
+	slalomR22(SLALOM_R2);
 	//slalomR32(-800, 800, 400, 200, 600, 20, 80);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
 	//MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1895,7 +1972,7 @@ void test_run2(void){
 
 					ms_wait(500);
 					half_sectionA2();
-					slalom_R902();				//16回右回転、つまり4周回転
+					slalom_R903();				//16回右回転、つまり4周回転
 					half_sectionD2();
 
 					break;

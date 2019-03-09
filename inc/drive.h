@@ -140,6 +140,7 @@ void rotate_180(void);			//180度回転
 void rotate_1802(void);			//180度回転
 void slalom_R90(void);			//スラローム右90回転
 void slalom_R902(void);			//スラローム右90回転
+void slalom_R903(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
 void slalom_L902(void);			//スラローム左90回転
 void set_position(uint8_t);		//上下位置合わせ
