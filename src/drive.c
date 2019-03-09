@@ -930,8 +930,8 @@ void one_section(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void one_section2(void){
 
-	driveA2(800, 100, 50, 400, PULSE_SEC_HALF);				//半区画分加速走行
-	driveD2(-800, 100, 500, PULSE_SEC_HALF);				//半区画分減速走行のち停止
+	half_sectionA2();										//半区画分加速走行
+	half_sectionD2();										//半区画分減速走行のち停止
 }
 
 
