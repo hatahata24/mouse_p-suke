@@ -164,29 +164,7 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		return;
 	}
 
-	if(MF.FLAG.TEST){
-		speedL = old_speedL + accelL * 0.001;
-		speedR = old_speedR + accelR * 0.001;
-
-		if(target_flag != 1){
-			if(speedL > speed_max) speedL = speed_max;
-			if(speedR > speed_max) speedR = speed_max;
-			if(speedL < speed_min) speedL = speed_min;
-			if(speedR < speed_min) speedR = speed_min;
-		}else{
-			if(speedL < target) speedL = target;
-			if(speedR > target) speedR = target;
-		}
-
-		widthL = ONE_STEP / speedL * 1000000;
-		widthR = ONE_STEP / speedR * 1000000;
-
-		old_speedL = speedL;
-		old_speedR = speedR;
-
-		//old_speed = 0.5* (old_speedL + old_speedR);
-
-	}else if(MF.FLAG.TEST2){
+	if(MF.FLAG.TEST2){
 		speedL = old_speedL + accel * 0.001;
 		speedR = old_speedR - accel * 0.001;
 
@@ -520,37 +498,6 @@ void driveA2(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
-//driveA3
-// 指定パルス分指定加速度で加速走行する
-// 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
-// 戻り値：なし
-//+++++++++++++++++++++++++++++++++++++++++++++++
-void driveA3(uint16_t accelL_p, uint16_t accelR_p, uint16_t speed_0L_p, uint16_t speed_0R_p,
-		uint16_t speed_minL_p, uint16_t speed_minR_p, uint16_t speed_maxL_p,
-		uint16_t speed_maxR_p, uint16_t distL, uint16_t distR){
-
-	speed_0 = speed_0L_p;
-	speed_0 = speed_0R_p;
-	speed_min = speed_minL_p;
-	speed_min = speed_minR_p;
-	speed_max = speed_maxL_p;
-	speed_max = speed_maxR_p;
-	accel = accelL_p;
-	accel = accelR_p;
-
-	if(MF.FLAG.STRT == 0) old_speed = speed_0;
-	drive_start2();											//走行開始
-
-	//----走行----
-	while((pulse_l < distL) || (pulse_r < distL));			//左右のモータが指定パルス以上進むまで待機
-
-	drive_stop2();
-	MF.FLAG.STRT = 1;
-	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
-}
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++
 //driveD
 // 指定パルス分減速走行して停止する
 // 引数1：dist …… 走行するパルス
@@ -587,38 +534,6 @@ void driveD(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
-
-	speed_0 = old_speed;
-	speed_min = speed_min_p;
-	speed_max = speed_max_p;
-	accel = accel_p;
-
-	drive_start2();											//走行開始
-
-	int16_t c_pulse = dist - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
-
-	accel = 0;
-	if(c_pulse > 0){
-		//----等速走行----
-		while((pulse_l < c_pulse) || (pulse_r < c_pulse));	//左右のモータが等速分のパルス以上進むまで待機
-	}
-
-	accel = accel_p;
-	//----減速走行----
-	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
-
-	MF.FLAG.STRT = 0;
-	drive_stop2();
-}
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++
-//driveD3
-// 指定パルス分指定減速度で減速走行する
-// 引数1：accel_p 加速度, 引数2：speed_0_p 初速, 引数3：speed_min_p 最低速度, 引数4：speed_max_p 最高速度, 引数5：dist 走行するパルス
-// 戻り値：なし
-//+++++++++++++++++++++++++++++++++++++++++++++++
-void driveD3(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	speed_0 = old_speed;
 	speed_min = speed_min_p;
@@ -796,40 +711,7 @@ void slalomR1(uint16_t dist){
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR12(int16_t accelL_p, int16_t accelR_p, uint16_t speed_0_p,
-		uint16_t speed_min_p, uint16_t speed_max_p, uint16_t distL, uint16_t distR){
-	//style = 2;													//曲線1に入ったことを保存
-	MF.FLAG.TEST = 1;
-	target_flag = 0;
-
-	old_speedL = old_speed;
-	old_speedR = old_speed;
-
-	speed_0 = speed_0_p;
-	speed_min = speed_min_p;
-	speed_max = speed_max_p;
-	accelL = accelL_p;
-	accelR = accelR_p;
-
-	drive_start2();											//走行開始
-
-	//====走行====
-	while((pulse_l < distL) && (pulse_r < distR));			//左右のモータが指定パルス以上進むまで待機
-
-
-	//====走行終了====
-	drive_stop2();
-	MF.FLAG.TEST = 0;
-}
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++
-//slalomR13
-// スラローム回転区間1
-// 引数1：dist …… 走行するパルス
-// 戻り値：なし
-//+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR13(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void slalomR12(uint16_t accel_p, uint16_t speed_0_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 	//style = 2;													//曲線1に入ったことを保存
 	MF.FLAG.TEST = 0;
 	MF.FLAG.TEST2 = 1;
@@ -918,37 +800,7 @@ void slalomR3(uint16_t dist){
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR32(int16_t accelL_p, int16_t accelR_p, uint16_t target_p,
-		uint16_t speed_min_p, uint16_t speed_max_p, uint16_t distL, uint16_t distR){
-	//style = 4;													//曲線3に入ったことを保存
-	MF.FLAG.TEST = 1;
-
-	target = target_p;
-	target_flag = 1;
-	speed_min = speed_min_p;
-	speed_max = speed_max_p;
-	accelL = accelL_p;
-	accelR = accelR_p;
-
-	drive_start2();											//走行開始
-
-	//====走行====
-	while((pulse_l < distL) && (pulse_r < distR));			//左右のモータが指定パルス以上進むまで待機
-
-	//====走行終了====
-	drive_stop2();
-	MF.FLAG.TEST = 0;
-	target_flag = 0;
-}
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++
-//slalomR33
-// スラローム回転区間3
-// 引数1：dist …… 走行するパルス
-// 戻り値：なし
-//+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR33(int16_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void slalomR32(int16_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 	//style = 4;													//曲線3に入ったことを保存
 	MF.FLAG.TEST2 = 1;
 
@@ -1255,45 +1107,14 @@ void slalom_R90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_R902(void){
 
-	//turn = 0;
-	//style = 0;
-	//MF.FLAG.SRRM = 1;
-
-	//turn = 1;												//右回転を保存する
-	//MF.FLAG.CTRL = 1;										//制御を有効にする
-	//slalomU12(SLALOM_U1);
-	//MF.FLAG.CTRL = 0;										//制御を無効にする
-	slalomR12(1000, -1000, 400, 200, 600, 80*7, 20*7);
-	//slalomR22(SLALOM_R2);
-	//slalomR32(-800, 800, 400, 200, 600, 20, 80);
-	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
-	//MF.FLAG.CTRL = 1;										//制御を有効にする
-	//slalomU22(SLALOM_U2);
-
-	//turn = 0;
-	//style = 0;
-	//MF.FLAG.SRRM = 0;
-	//get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
-
-}
-
-
-//+++++++++++++++++++++++++++++++++++++++++++++++
-//slalom_R903
-// スラローム右旋回
-// 引数：なし
-// 戻り値：なし
-//+++++++++++++++++++++++++++++++++++++++++++++++
-void slalom_R903(void){
-
 	//MF.FLAG.SRRM = 1;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU12(SLALOM_U1);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	slalomR13(2000, 400, 200, 600, SLALOM_R1*2);
+	slalomR12(2000, 400, 200, 600, SLALOM_R1*2);
 	slalomR22(SLALOM_R2*1.5);
-	slalomR33(-2000, 400, 200, 600, SLALOM_R3*2);
+	slalomR32(-2000, 400, 200, 600, SLALOM_R3*2);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU22(SLALOM_U2);

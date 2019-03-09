@@ -114,12 +114,11 @@ void driveC2(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
 void slalomU12(uint16_t);
 void slalomR1(uint16_t);
-void slalomR12(int16_t, int16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
-void slalomR13(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
 void slalomR22(uint16_t);
 void slalomR3(uint16_t);
-void slalomR32(int16_t, int16_t, uint16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR32(int16_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomU2(uint16_t);
 void slalomU22(uint16_t);
 
@@ -130,7 +129,7 @@ void half_sectionA2(void);		//加速半区画
 void half_sectionD(void);		//減速半区画
 void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
-void one_section2(void);			//加減速一区画
+void one_section2(void);		//加減速一区画
 void one_sectionU(void);		//等速一区画
 void rotate_R90(void);			//右90回転
 void rotate_R902(void);			//右90回転
@@ -144,7 +143,7 @@ void slalom_R903(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
 void slalom_L902(void);			//スラローム左90回転
 void set_position(uint8_t);		//上下位置合わせ
-void set_position2(uint8_t);		//上下位置合わせ
+void set_position2(uint8_t);	//上下位置合わせ
 void set_positionX(uint8_t);	//上下左右位置合わせ
 void set_positionX2(uint8_t);	//上下左右位置合わせ
 
