@@ -164,48 +164,41 @@ void TIM1_BRK_TIM15_IRQHandler(){
 
 	if(MF.FLAG.SLLM){											//スラローム走行フラグONの場合
 		if(style == 1){											//右折の場合
-			speedL = old_speedL + accel * 0.001;				//左輪速度をUP
-			speedR = old_speedR - accel * 0.001;				//右輪速度をDOWN
+			speedL += accel * 0.001;							//左輪速度をUP
+			speedR -= accel * 0.001;							//右輪速度をDOWN
 		}
 		if(style == 2){											//左折の場合
-			speedL = old_speedL - accel * 0.001;				//左輪速度をDOWN
-			speedR = old_speedR + accel * 0.001;				//右輪速度をUP
+			speedL -= accel * 0.001;							//左輪速度をDOWN
+			speedR += accel * 0.001;							//右輪速度をUP
 		}
 
 		if(target_flag != 1){									//ターゲットフラグOFFの場合(slalomR32を参照)
-			if(speedL > speed_max) speedL = speed_max;
-			if(speedR > speed_max) speedR = speed_max;
-			if(speedL < speed_min) speedL = speed_min;
-			if(speedR < speed_min) speedR = speed_min;			//左右輪が最大、最小スピードを上回る、下回らないように
+			speedL = min (speedL , speed_max);
+			speedR = min (speedR , speed_max);
+			speedL = max (speedL , speed_min);
+			speedR = max (speedR , speed_min);					//左右輪が最大、最小スピードを上回る、下回らないように
 		}
 		else{													//ターゲットフラグONの場合(slalomR32を参照)
 			if(style == 1){										//右折の場合
-				if(speedL < target) speedL = target;
-				if(speedR > target) speedR = target;			//左右輪が目標速度になるように
+				speedL = max (speedL , target);
+				speedR = min (speedR , target);					//左右輪が目標速度になるように
 			}
 			if(style == 2){										//左折の場合
-				if(speedL > target) speedL = target;
-				if(speedR < target) speedR = target;			//左右輪が目標速度になるように
+				speedL = min (speedL , target);
+				speedR = max (speedR , target);					//左右輪が目標速度になるように
 			}
 		}
 
 		widthL = ONE_STEP / speedL * 1000000;
 		widthR = ONE_STEP / speedR * 1000000;					//出力速度を出力パルス間隔に変換
 
-		old_speedL = speedL;
-		old_speedR = speedR;									//現在の速度を保存
-
 	}else{														//スラローム走行ではない場合は左右輪の回転速度は同じのため計算が簡略化
-		speed = old_speed + accel * 0.001;
+		speed += accel * 0.001;
 
-		if(speed > speed_max) speed = speed_max;
-		if(speed < speed_min) speed = speed_min;
+		speed = min (speed , speed_max);
+		speed = max (speed , speed_min);						//左右輪が最大、最小スピードを上回る、下回らないように
 
-		widthL = ONE_STEP / speed * 1000000;
-		widthR = ONE_STEP / speed * 1000000;
-
-		old_speed = speed;
-
+		widthL = widthR = ONE_STEP / speed * 1000000;			//出力速度を出力パルス間隔に変換
 	}
 
 	TIM15->SR &= ~TIM_SR_UIF;
@@ -506,7 +499,7 @@ void driveA2(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint1
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
 
-	if(MF.FLAG.STRT == 0) old_speed = 100;				//最初の加速の際だけold_speedを定義
+	if(MF.FLAG.STRT == 0) speed = 100;				//最初の加速の際だけold_speedを定義
 	drive_start2();											//走行開始
 
 	//----走行----
@@ -556,7 +549,7 @@ void driveD(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	float speed_0 = old_speed;								//直線パルス数を計算するためにTIM15より参照
+	float speed_0 = speed;								//直線パルス数を計算するためにTIM15より参照
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
@@ -694,8 +687,7 @@ void slalomU1(uint16_t dist){
 void slalomU12(uint16_t dist){
 	target_flag = 0;										//ターゲットフラグの初期化
 
-	old_speedL = old_speed;
-	old_speedR = old_speed;									//走行モードが変わる際のスピードの参照
+	speedL = speedR = speed;											//走行モードが変わる際のスピードの参照
 
 	accel = 0;												//等速走行のため
 	drive_start2();											//走行開始
