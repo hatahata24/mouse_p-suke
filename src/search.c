@@ -64,12 +64,10 @@ void searchA(){
 			//----右折----
 			case 0x44:
 				rotate_R90();								//右回転
-				turn_dir(DIR_TURN_R90);						//マイクロマウス内部位置情報でも右回転処理
 				break;
 			//----180回転----
 			case 0x22:
 				rotate_180();								//180度回転
-				turn_dir(DIR_TURN_180);						//マイクロマウス内部位置情報でも180度回転処理
 				if(wall_info & 0x88){
 					set_position(0);
 				}
@@ -77,7 +75,6 @@ void searchA(){
 			//----左折----
 			case 0x11:
 				rotate_L90();								//左回転
-				turn_dir(DIR_TURN_L90);						//マイクロマウス内部位置情報でも左回転処理
 				break;
 		}
 
@@ -94,7 +91,7 @@ void searchA(){
 	rotate_180();											//180度回転
 	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
-	if( ! MF.FLAG.SCND){
+	if(!MF.FLAG.SCND){
 		store_map_in_eeprom();
 	}
 }
@@ -132,12 +129,10 @@ void searchA2(){
 			//----右折----
 			case 0x44:
 				rotate_R902();								//右回転
-				turn_dir(DIR_TURN_R90);						//マイクロマウス内部位置情報でも右回転処理
 				break;
 			//----180回転----
 			case 0x22:
 				rotate_1802();								//180度回転
-				turn_dir(DIR_TURN_180);						//マイクロマウス内部位置情報でも180度回転処理
 				if(wall_info & 0x88){
 					set_position2(0);
 				}
@@ -145,7 +140,6 @@ void searchA2(){
 			//----左折----
 			case 0x11:
 				rotate_L902();								//左回転
-				turn_dir(DIR_TURN_L90);						//マイクロマウス内部位置情報でも左回転処理
 				break;
 		}
 
@@ -210,14 +204,12 @@ void searchB(void){
 			case 0x44:
 				half_sectionD();
 				rotate_R90();
-				turn_dir(DIR_TURN_R90);
 				half_sectionA();
 				break;
 			//----180回転----
 			case 0x22:
 				half_sectionD();
 				rotate_180();
-				turn_dir(DIR_TURN_180);
 				if(wall_info & 0x88){
 					set_position(0);
 				}
@@ -227,7 +219,6 @@ void searchB(void){
 			case 0x11:
 				half_sectionD();
 				rotate_L90();
-				turn_dir(DIR_TURN_L90);
 				half_sectionA();
 				break;
 		}
@@ -291,14 +282,12 @@ void searchB2(void){
 			case 0x44:
 				half_sectionD2();
 				rotate_R902();
-				turn_dir(DIR_TURN_R90);
 				half_sectionA2();
 				break;
 			//----180回転----
 			case 0x22:
 				half_sectionD2();
 				rotate_1802();
-				turn_dir(DIR_TURN_180);
 				if(wall_info & 0x88){
 					set_position2(0);
 				}
@@ -308,7 +297,6 @@ void searchB2(void){
 			case 0x11:
 				half_sectionD2();
 				rotate_L902();
-				turn_dir(DIR_TURN_L90);
 				half_sectionA2();
 				break;
 		}
@@ -538,18 +526,18 @@ void map_Init(){
 
 	//====初期化開始====
 	//マップのクリア
-	for(y = 0; y < 16; y++){								//各Y座標で実行
-		for(x = 0; x < 16; x++){							//各X座標で実行
+	for(y = 0; y <= 15; y++){								//各Y座標で実行
+		for(x = 0; x <= 15; x++){							//各X座標で実行
 			map[y][x] = 0xf0;								//上位4ビット（2次走行時）を壁あり，下位4ビット（1次走行時）を壁なしとする。
 		}
 	}
 
 	//確定壁の配置
-	for(y = 0; y < 16; y++){								//各Y座標で実行
+	for(y = 0; y <= 15; y++){								//各Y座標で実行
 		map[y][0] |= 0xf1;									//最西に壁を配置
 		map[y][15] |= 0xf4;									//最東に壁を配置
 	}
-	for(x = 0; x < 16; x++){								//各X座標で実行
+	for(x = 0; x <= 15; x++){								//各X座標で実行
 		map[0][x] |= 0xf2;									//最南に壁を配置
 		map[15][x] |= 0xf8;									//最北に壁を配置
 	}
@@ -635,7 +623,7 @@ void make_smap(void){
 
 	//====歩数マップのクリア====
 	for(y = 0; y <= 15; y++){								//各Y座標で実行
-		for( x = 0; x <= 15; x++){							//各X座標で実行
+		for(x = 0; x <= 15; x++){							//各X座標で実行
 			smap[y][x] = 0xff;								//未記入部分は歩数最大とする
 		}
 	}
@@ -647,10 +635,10 @@ void make_smap(void){
 	//====自分の座標にたどり着くまでループ====
 	do{
 		//----マップ全域を捜索----
-		for( y = 0; y <= 15; y++){							//各Y座標で実行
-			for( x = 0; x <= 15; x++){						//各X座標で実行
+		for(y = 0; y <= 15; y++){							//各Y座標で実行
+			for(x = 0; x <= 15; x++){						//各X座標で実行
 				//----現在最大の歩数を発見したとき----
-				if( smap[y][x] == m_step){					//歩数カウンタm_stepの値が現在最大の歩数
+				if(smap[y][x] == m_step){					//歩数カウンタm_stepの値が現在最大の歩数
 					uint8_t m_temp = map[y][x];				//map配列からマップデータを取り出す
 					if(MF.FLAG.SCND){						//二次走行用のマップを作成する場合（二次走行時はMF.FLAG.SCNDが立っている）
 						m_temp >>= 4;						//上位4bitを使うので4bit分右にシフトさせる
@@ -704,7 +692,7 @@ void make_route(){
 	//====最短経路を初期化====
 	uint16_t i;
 	for(i = 0; i < 256; i++){
-		route[i] = 0xff;											//routeを0xffで初期化
+		route[i] = 0xff;										//routeを0xffで初期化
 	}
 
 	//====歩数カウンタをセット====
@@ -727,14 +715,12 @@ void make_route(){
 			m_step = smap[y+1][x];								//最大歩数マップ値を更新
 			y++;												//北に進んだのでY座標をインクリメント
 		}
-
 		//----東を見る----
 		else if(!(m_temp & 0x04) && (smap[y][x+1] < m_step)){	//東側に壁が無く、現在地より小さい歩数マップ値であれば
 			route[i] = (0x01 - mouse.dir) & 0x03;				//route配列に進行方向を記録
 			m_step = smap[y][x+1];								//最大歩数マップ値を更新
 			x++;												//東に進んだのでX座標をインクリメント
 		}
-
 		//----東を見る----
 /*		if(!(m_temp & 0x04) && (smap[y][x+1] < m_step)){		//東側に壁が無く、現在地より小さい歩数マップ値であれば
 			route[i] = (0x01 - mouse.dir) & 0x03;				//route配列に進行方向を記録
@@ -795,7 +781,7 @@ void make_route(){
 			break;
 		}
 		i++;													//カウンタをインクリメント
-	}while( smap[y][x] != 0);									//進んだ先の歩数マップ値が0（=ゴール）になるまで実行
+	}while(smap[y][x] != 0);									//進んだ先の歩数マップ値が0（=ゴール）になるまで実行
 	mouse.dir = dir_temp;										//dir_tempに退避させた値をmouse.dirにリストア
 }
 

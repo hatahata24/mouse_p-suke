@@ -180,6 +180,9 @@ int main(void){
 					break;
 
 				case 6:
+					//----テスト走行2----
+					printf("Test Run2.\n");
+					test_run3();
 
 					break;
 

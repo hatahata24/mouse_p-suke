@@ -499,14 +499,14 @@ void driveA2(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint1
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
 
-	if(MF.FLAG.STRT == 0) speed = 100;				//最初の加速の際だけold_speedを定義
+	if(MF.FLAG.STRT == 0) speed = 100;						//最初の加速の際だけspeedを定義
 	drive_start2();											//走行開始
 
 	//----走行----
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
 
 	drive_stop2();											//走行停止
-	MF.FLAG.STRT = 1;										//2回目以降の加速の際はold_speedは既存のスピードを用いる
+	MF.FLAG.STRT = 1;										//2回目以降の加速の際はspeedは既存のスピードを用いる
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -884,7 +884,7 @@ void half_sectionA(void){
 void half_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveA2(800, 100, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行。走行後は停止しない
+	driveA2(800, 100, 400, PULSE_SEC_HALF);					//半区画のパルス分加速しながら走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -980,6 +980,7 @@ void rotate_R90(void){
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA(PULSE_ROT_R90*0.5);
 	driveD(PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -996,6 +997,7 @@ void rotate_R902(void){
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
 	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1012,6 +1014,7 @@ void rotate_L90(void){
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
 	driveA(PULSE_ROT_L90*0.5);
 	driveD(PULSE_ROT_L90*0.5);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1028,6 +1031,7 @@ void rotate_L902(void){
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
 	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
 	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1044,6 +1048,7 @@ void rotate_180(void){
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA(PULSE_ROT_R90);
 	driveD(PULSE_ROT_R90);
+	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1060,6 +1065,7 @@ void rotate_1802(void){
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA2(800, 50, 400, PULSE_ROT_R90);
 	driveD2(-800, 50, 500, PULSE_ROT_R90);
+	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -1318,7 +1324,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX(0);
-					get_base();		//Original
+					get_base();
 
 					searchA();
 					ms_wait(500);
@@ -1340,7 +1346,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX(0);
-					get_base();		//Original
+					get_base();
 
 					searchB();
 					ms_wait(500);
@@ -1362,7 +1368,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX(0);
-					get_base();		//Original
+					get_base();
 
 					searchB();
 					ms_wait(500);
@@ -1384,7 +1390,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX2(0);
-					get_base();		//Original
+					get_base();
 
 					searchA2();
 					ms_wait(500);
@@ -1407,7 +1413,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX2(0);
-					get_base();		//Original
+					get_base();
 
 					searchB2();
 					ms_wait(500);
@@ -1430,7 +1436,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX2(0);
-					get_base();		//Original
+					get_base();
 
 					searchB2();
 					ms_wait(500);
@@ -1802,7 +1808,156 @@ void test_run2(void){
 					//----スラローム----
 					printf("Slalom.\n");
 					MF.FLAG.SCND = 0;
-					get_base();		//Original
+					get_base();
+
+					ms_wait(500);
+					half_sectionA2();
+					slalom_R902();				//16回右回転、つまり4周回転
+					slalom_L902();				//16回右回転、つまり4周回転
+					half_sectionD2();
+
+					break;
+				case 6:
+					//----4区画連続走行----
+					printf("4 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						//one_sectionU2();			//一区画のパルス分等速走行
+						driveA2(400, 50, 400, PULSE_SEC_HALF*2);			//半区画のパルス分加速しながら走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					break;
+				case 7:
+					//----サンプルコース走行----
+					printf("Sample course Run.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					one_sectionU2();			//一区画のパルス分等速走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//test_run3
+// テスト走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void test_run3(void){
+
+	int mode = 0;
+	printf("Test Run3, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Run, Mode : %d\n", mode);
+		}
+
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i = 0;
+			switch(mode){
+
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_positionX2(0);
+					break;
+				case 1:
+					//----4区画加減速走行----
+					printf("4 Section, Forward, Accel & Deccel Speed.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					half_sectionA2();
+					half_sectionA2();
+					half_sectionD2();
+					half_sectionD2();
+
+				break;
+				case 2:
+					//----1区画加減速走行----
+					printf("1 Section, Forward, Accel & Deccel Speed.\n");
+					half_sectionA2();
+					half_sectionD2();
+					break;
+				case 3:
+					//----2区画加減速走行----
+					printf("2 Section, Forward, Accel & Deccel Speed.\n");
+					driveA2(800, 100, 400, PULSE_SEC_HALF*2);					//半区画のパルス分加速しながら走行。走行後は停止しない
+					driveD2(-800, 100, 600, PULSE_SEC_HALF*2);				//指定パルス分指定減速度で減速走行。走行後は停止する
+					break;
+				case 4:
+					//----180度回転----
+					printf("Rotate 180.\n");
+					for(i = 0; i < 8; i++){
+						rotate_1802();				//8回右180度回転、つまり4周回転
+					}
+					break;
+				case 5:
+					//----スラローム----
+					printf("Slalom.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
 
 					ms_wait(500);
 					half_sectionA2();

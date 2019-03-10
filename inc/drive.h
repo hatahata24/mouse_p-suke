@@ -53,7 +53,7 @@
 	volatile uint8_t turn;							//回転方向確認用　1=右回転　2=左回転
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	volatile float speed, old_speed, widthR, widthL;
+	volatile float speed, widthR, widthL;
 	volatile float speed_min, speed_max, accel;
 
 	volatile float speedL, old_speedL;
@@ -71,7 +71,7 @@
 	extern volatile uint8_t turn;					//回転方向確認用　1=右回転　2=左回転
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	extern volatile float speed, old_speed, widthR, widthL;
+	extern volatile float speed, widthR, widthL;
 	extern volatile float speed_min, speed_max, accel;
 
 	extern volatile float speedL, old_speedL;
@@ -147,7 +147,8 @@ void set_positionX2(uint8_t);	//上下左右位置合わせ
 void simple_run(void);			//超新地走行
 void slalom_run(void);			//スラローム走行
 void test_run(void);			//テスト走行
-void test_run2(void);			//テスト走行2
+void test_run2(void);			//テスト走行2物理量導入
+void test_run3(void);			//テスト走行3既知区間加速
 void perfect_run(void);			//本番用走行
 
 
