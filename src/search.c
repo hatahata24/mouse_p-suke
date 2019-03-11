@@ -365,7 +365,6 @@ void searchC(void){
 			case 0x22:
 				half_sectionD();
 				rotate_180();
-				turn_dir(DIR_TURN_180);
 				if(wall_info & 0x88){
 					set_position(0);
 				}
@@ -438,7 +437,6 @@ void searchC2(void){
 			case 0x22:
 				half_sectionD2();
 				rotate_1802();
-				turn_dir(DIR_TURN_180);
 				if(wall_info & 0x88){
 					set_position2(0);
 				}

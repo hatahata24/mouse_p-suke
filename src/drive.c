@@ -1113,14 +1113,14 @@ void slalom_R902(void){
 	style = 1;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU12(SLALOM_U1);
+	slalomU12(SLALOM_U12);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	slalomR12(8000, 100, 700, SLALOM_R1);
-	slalomR22(SLALOM_R2);
-	slalomR32(-8000, 400, 100, 700, SLALOM_R3);
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU22(SLALOM_U2);
+	slalomU22(SLALOM_U22);
 
 	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
@@ -1171,14 +1171,14 @@ void slalom_L902(void){
 	style = 2;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU12(SLALOM_U1);
+	slalomU12(SLALOM_U12);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	slalomR12(8000, 100, 700, SLALOM_R1);
-	slalomR22(SLALOM_R2);
-	slalomR32(-8000, 400, 100, 700, SLALOM_R3);
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
 	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも右回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU22(SLALOM_U2);
+	slalomU22(SLALOM_U22);
 
 	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
@@ -1261,11 +1261,11 @@ void set_positionX2(uint8_t sw){
 
 	rotate_R902();
 	drive_wait();
-	set_position(sw);
+	set_position2(sw);
 	drive_wait();
 	rotate_L902();
 	drive_wait();
-	set_position(sw);
+	set_position2(sw);
 	drive_wait();
 }
 
@@ -1612,6 +1612,25 @@ void slalom_run(void){
 					break;
 
 				case 7:
+					//----一次探索スラローム走行----
+					printf("First Run. (Slalom)\n");
+
+					MF.FLAG.SLLM = 1;
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
 
 					break;
 			}
@@ -1915,7 +1934,7 @@ void test_run3(void){
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
-			int i = 0;
+			int j = 0;
 			switch(mode){
 
 				case 0:
@@ -1932,7 +1951,6 @@ void test_run3(void){
 					half_sectionA2();
 					half_sectionD2();
 					half_sectionD2();
-
 				break;
 				case 2:
 					//----1区画加減速走行----
@@ -1947,78 +1965,59 @@ void test_run3(void){
 					driveD2(-800, 100, 600, PULSE_SEC_HALF*2);				//指定パルス分指定減速度で減速走行。走行後は停止する
 					break;
 				case 4:
-					//----180度回転----
-					printf("Rotate 180.\n");
-					for(i = 0; i < 8; i++){
-						rotate_1802();				//8回右180度回転、つまり4周回転
-					}
-					break;
-				case 5:
-					//----スラローム----
-					printf("Slalom.\n");
+					//----右90度スラローム回転*16----
+					printf("Slalom R90.\n");
 					MF.FLAG.SCND = 0;
 					get_base();
 
 					ms_wait(500);
-					half_sectionA2();
-					slalom_R902();				//16回右回転、つまり4周回転
-					slalom_L902();				//16回右回転、つまり4周回転
-					half_sectionD2();
-
+					for(j = 0; j < 16; j++){
+						half_sectionA2();
+						slalom_R902();				//16回右回転、つまり4周回転
+						half_sectionD2();
+					}
 					break;
+
+				case 5:
+					//----左90度スラローム回転*16----
+					printf("Slalom L90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+
+					ms_wait(500);
+					for(j = 0; j < 16; j++){
+						half_sectionA2();
+						slalom_L902();				//16回左回転、つまり4周回転
+						half_sectionD2();
+					}
+					break;
+
 				case 6:
-					//----4区画連続走行----
-					printf("4 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
+					//----右90度スラローム回転----
+					printf("Slalom R90.\n");
+					MF.FLAG.SCND = 0;
 					get_base();
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 3-1; i++){
-						//one_sectionU2();			//一区画のパルス分等速走行
-						driveA2(400, 50, 400, PULSE_SEC_HALF*2);			//半区画のパルス分加速しながら走行
-					}
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					break;
-				case 7:
-					//----サンプルコース走行----
-					printf("Sample course Run.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					get_base();
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 3-1; i++){
-						one_sectionU2();			//一区画のパルス分等速走行
-					}
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_R902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					one_sectionU2();			//一区画のパルス分等速走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_R902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_R902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_L902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_L902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_R902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_L902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
-					rotate_L902();
-					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 3-1; i++){
-						one_sectionU2();			//一区画のパルス分等速走行
-					}
-					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 
+					ms_wait(500);
+					for(j = 0; j < 1; j++){
+						half_sectionA2();
+						slalom_R902();				//1回右回転、つまり1/4周回転
+						half_sectionD2();
+					}
+					break;
+
+				case 7:
+					//----左90度スラローム回転----
+					printf("Slalom L90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+
+					ms_wait(500);
+					for(j = 0; j < 1; j++){
+						half_sectionA2();
+						slalom_L902();				//1回左回転、つまり1/4周回転
+						half_sectionD2();
+					}
 					break;
 			}
 		}

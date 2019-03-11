@@ -42,6 +42,12 @@
 #define SLALOM_R3			50//50//80//4//2				//スラローム曲線3
 #define SLALOM_U2			20//10							//スラローム直線2
 
+#define SLALOM_U12			60								//スラローム直線1
+#define SLALOM_R12			50								//スラローム曲線1
+#define SLALOM_R22			156								//スラローム曲線2
+#define SLALOM_R32			50								//スラローム曲線3
+#define SLALOM_U22			30								//スラローム直線2
+
 //----テーブルカウンタ関連----
 #define MAX_T_CNT	600				//テーブルカウンタの最大値
 #define STR_T_CNT	PULSE_SEC_HALF	//テーブルカウンタの直線値
