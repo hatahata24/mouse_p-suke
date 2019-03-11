@@ -89,7 +89,6 @@ void searchA(){
 															//現在座標とgoal座標が等しくなるまで実行
 	ms_wait(2000);											//スタートでは***2秒以上***停止しなくてはならない
 	rotate_180();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if(!MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -154,7 +153,6 @@ void searchA2(){
 															//現在座標とgoal座標が等しくなるまで実行
 	ms_wait(2000);											//スタートでは***2秒以上***停止しなくてはならない
 	rotate_1802();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -231,7 +229,6 @@ void searchB(void){
 
 	ms_wait(2000);
 	rotate_180();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -309,7 +306,6 @@ void searchB2(void){
 
 	ms_wait(2000);
 	rotate_1802();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -384,7 +380,6 @@ void searchC(void){
 
 	ms_wait(2000);
 	rotate_180();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -456,7 +451,6 @@ void searchC2(void){
 
 	ms_wait(2000);
 	rotate_1802();											//180度回転
-	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
