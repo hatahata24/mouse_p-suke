@@ -162,7 +162,13 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		return;
 	}
 
-	if(MF.FLAG.SLLM){											//スラローム走行フラグONの場合
+	//if(MF.FLAG.SLLM){											//スラローム走行フラグONの場合
+		if(style == 0){
+			speedL += accel * 0.001;
+			speedR += accel * 0.001;
+		}
+
+
 		if(style == 1){											//右折の場合
 			speedL += accel * 0.001;							//左輪速度をUP
 			speedR -= accel * 0.001;							//右輪速度をDOWN
@@ -192,14 +198,14 @@ void TIM1_BRK_TIM15_IRQHandler(){
 		widthL = ONE_STEP / speedL * 1000000;
 		widthR = ONE_STEP / speedR * 1000000;					//出力速度を出力パルス間隔に変換
 
-	}else{														//スラローム走行ではない場合は左右輪の回転速度は同じのため計算が簡略化
+	/*}else{														//スラローム走行ではない場合は左右輪の回転速度は同じのため計算が簡略化
 		speed += accel * 0.001;
 
 		speed = min (speed , speed_max);
 		speed = max (speed , speed_min);						//左右輪が最大、最小スピードを上回る、下回らないように
 
 		widthL = widthR = ONE_STEP / speed * 1000000;			//出力速度を出力パルス間隔に変換
-	}
+	}*/
 
 	TIM15->SR &= ~TIM_SR_UIF;
 }
@@ -499,7 +505,7 @@ void driveA2(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint1
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
 
-	if(MF.FLAG.STRT == 0) speed = 100;						//最初の加速の際だけspeedを定義
+	if(MF.FLAG.STRT == 0) speedL = speedR = 100;						//最初の加速の際だけspeedを定義
 	drive_start2();											//走行開始
 
 	//----走行----
@@ -549,7 +555,7 @@ void driveD(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
-	float speed_0 = speed;								//直線パルス数を計算するためにTIM15より参照
+	float speed_0 = speedL;								//直線パルス数を計算するためにTIM15より参照
 	speed_min = speed_min_p;
 	speed_max = speed_max_p;
 	accel = accel_p;										//引数の各パラメータをグローバル変数化
@@ -687,7 +693,7 @@ void slalomU1(uint16_t dist){
 void slalomU12(uint16_t dist){
 	target_flag = 0;										//ターゲットフラグの初期化
 
-	speedL = speedR = speed;											//走行モードが変わる際のスピードの参照
+	//speedL = speedR = speed;								//走行モードが変わる際のスピードの参照
 
 	accel = 0;												//等速走行のため
 	drive_start2();											//走行開始
@@ -1109,7 +1115,7 @@ void slalom_R90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_R902(void){
 
-	MF.FLAG.SLLM = 1;
+	//MF.FLAG.SLLM = 1;
 	style = 1;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1122,7 +1128,8 @@ void slalom_R902(void){
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU22(SLALOM_U22);
 
-	MF.FLAG.SLLM = 0;
+	//MF.FLAG.SLLM = 0;
+	style = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1167,7 +1174,7 @@ void slalom_L90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_L902(void){
 
-	MF.FLAG.SLLM = 1;
+	//MF.FLAG.SLLM = 1;
 	style = 2;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1180,7 +1187,8 @@ void slalom_L902(void){
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU22(SLALOM_U22);
 
-	MF.FLAG.SLLM = 0;
+	//MF.FLAG.SLLM = 0;
+	style = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1616,6 +1624,7 @@ void slalom_run(void){
 					printf("First Run. (Slalom)\n");
 
 					//MF.FLAG.SLLM = 1;
+					style = 0;
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;

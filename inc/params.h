@@ -75,7 +75,7 @@
 
 #define CTRL_1WALL_L	-150		//左片壁制御閾値、この値より偏差が大きくなったら片壁開始
 #define CTRL_1WALL_R	-150		//右片壁制御閾値。この値より偏差が大きくなったら片壁開始
-#define CTRL_1WALL_CONT	0.1F		//比例制御係数
+#define CTRL_1WALL_CONT	0.05F		//比例制御係数
 
 //----赤外線（赤色）LED発光待機時間（単位はマイクロ秒）
 #define IR_WAIT_US	15
