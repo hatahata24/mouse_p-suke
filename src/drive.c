@@ -643,9 +643,9 @@ void driveC(uint16_t dist){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void driveC2(uint16_t dist){
 
-	speed_min = 100;
+	speed_min = 150;
 	speed_max = 300;
-	accel = 0;												//100mm/sの定速走行
+	accel = 0;												//150mm/sの定速走行
 
 	drive_start2();											//走行開始
 
@@ -995,8 +995,8 @@ void rotate_R902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
-	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
-	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
+	driveA2(800, 100, 400, PULSE_ROT_R90*0.5);
+	driveD2(-800, 100, 500, PULSE_ROT_R90*0.5);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
@@ -1029,8 +1029,8 @@ void rotate_L902(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
-	driveA2(800, 50, 400, PULSE_ROT_R90*0.5);
-	driveD2(-800, 50, 500, PULSE_ROT_R90*0.5);
+	driveA2(800, 100, 400, PULSE_ROT_R90*0.5);
+	driveD2(-800, 100, 500, PULSE_ROT_R90*0.5);
 	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
@@ -1615,7 +1615,7 @@ void slalom_run(void){
 					//----一次探索スラローム走行----
 					printf("First Run. (Slalom)\n");
 
-					MF.FLAG.SLLM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
