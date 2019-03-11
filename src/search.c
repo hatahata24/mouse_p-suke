@@ -273,7 +273,15 @@ void searchB2(void){
 		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
 			//----前進----
 			case 0x88:
-				one_sectionU2();
+				if(MF.FLAG.SCND && (route[r_cnt+1] & route[r_cnt+2]) == 0x88){
+					one_sectionA2();
+					//uint8_t i = 1;
+				}else if(MF.FLAG.SCND && (route[r_cnt+1] & 0x55)){
+					one_sectionD2();
+					//i = 0;
+				}else{
+					one_sectionU();
+				}
 				break;
 			//----右折----
 			case 0x44:
@@ -421,7 +429,15 @@ void searchC2(void){
 		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
 			//----前進----
 			case 0x88:
-				one_sectionU2();
+				if(MF.FLAG.SCND && (route[r_cnt+1] & route[r_cnt+2]) == 0x88){
+					one_sectionA2();
+					//uint8_t i = 1;
+				}else if(MF.FLAG.SCND && (route[r_cnt+1] & 0x55)){
+					one_sectionD2();
+					//i = 0;
+				}else{
+					one_sectionU();
+				}
 				break;
 			//----右折スラローム----
 			case 0x44:

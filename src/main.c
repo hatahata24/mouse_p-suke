@@ -183,7 +183,7 @@ int main(void){
 					//----テスト走行2----
 					printf("Test Run2.\n");
 					test_run3();
-
+					sample_course_run();
 					break;
 
 				case 7:

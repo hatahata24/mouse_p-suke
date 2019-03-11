@@ -125,6 +125,8 @@ void half_sectionD(void);		//減速半区画
 void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
 void one_section2(void);		//加減速一区画
+void one_sectionA2(void);		//加速一区画
+void one_sectionD2(void);		//減速一区画
 void one_sectionU(void);		//等速一区画
 void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
@@ -149,6 +151,7 @@ void slalom_run(void);			//スラローム走行
 void test_run(void);			//テスト走行
 void test_run2(void);			//テスト走行2物理量導入
 void test_run3(void);			//テスト走行3既知区間加速
+void sample_course_run(void);		//試験コース走行
 void perfect_run(void);			//本番用走行
 
 
