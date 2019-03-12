@@ -113,7 +113,7 @@ void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
 void slalomR22(uint16_t);
 void slalomR3(uint16_t);
-void slalomR32(int16_t, uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR32(int32_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomU2(uint16_t);
 void slalomU22(uint16_t);
 

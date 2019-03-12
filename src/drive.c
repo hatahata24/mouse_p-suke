@@ -188,6 +188,8 @@ void TIM1_BRK_TIM15_IRQHandler(){
 			speedR = max (min (speedR , speed_max) , speed_min);
 			//speedL = max (speedL , speed_min);
 			//speedR = max (speedR , speed_min);				//左右輪が最大、最小スピードを上回る、下回らないように
+			//speedL = min (speedL , speed_max);
+			//speedR = min (speedR , speed_max);				//左右輪が最大、最小スピードを上回る、下回らないように
 		}
 
 		widthL = ONE_STEP / speedL * 1000000;
@@ -764,7 +766,7 @@ void slalomR22(uint16_t dist){
 	while((pulse_l + pulse_r)*0.5 < dist);					//左右のモータが指定パルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();											//走行停止
+	drive_stop2();											//走行停止
 }
 
 
@@ -792,7 +794,7 @@ void slalomR3(uint16_t dist){
 // 引数1：dist …… 走行するパルス
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void slalomR32(int16_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+void slalomR32(int32_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
 
 	target = target_p;										//直線走行に向けた目標値
 	target_flag = 1;										//目標値に近づける走行モードの選択用
@@ -954,6 +956,7 @@ void one_sectionD2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	driveD2(-1000, 400, 700, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
 
@@ -1101,6 +1104,8 @@ void slalom_R90(void){
 	style = 0;
 	MF.FLAG.SLLM = 1;
 
+	t_cnt_l = t_cnt_r = str_t_cnt;
+
 	turn = 1;												//右回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU1(SLALOM_U1);
@@ -1128,7 +1133,7 @@ void slalom_R90(void){
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalom_R902(void){
 
-	style = 1;
+/*	style = 1;
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
 	slalomU12(SLALOM_U12);
@@ -1141,6 +1146,24 @@ void slalom_R902(void){
 	slalomU22(SLALOM_U22);
 
 	style = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+*/
+	style = 1;
+	//MF.FLAG.SLLM = 1;										//制御を有効にする
+
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU12(SLALOM_U12);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU22(SLALOM_U22);
+
+	style = 0;
+	//MF.FLAG.SLLM = 0;										//制御を有効にする
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -1157,6 +1180,8 @@ void slalom_L90(void){
 	turn = 0;
 	style = 0;
 	MF.FLAG.SLLM = 1;
+
+	t_cnt_l = t_cnt_r = str_t_cnt;
 
 	turn = 2;												//左回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1527,14 +1552,14 @@ void slalom_run(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					set_positionX(0);
+					set_positionX2(0);
 					get_base();
 
-					searchC();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1550,14 +1575,14 @@ void slalom_run(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					set_positionX(0);
+					set_positionX2(0);
 					get_base();
 
-					searchC();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1922,7 +1947,7 @@ void test_run3(void){
 					ms_wait(500);
 					for(i = 0; i < 16; i++){
 						half_sectionA2();
-						slalom_R902();				//16回右回転、つまり4周回転
+						slalom_R90();				//16回右回転、つまり4周回転
 						half_sectionD2();
 					}
 					break;
@@ -1935,7 +1960,7 @@ void test_run3(void){
 					ms_wait(500);
 					for(i = 0; i < 16; i++){
 						half_sectionA2();
-						slalom_L902();				//16回左回転、つまり4周回転
+						slalom_L90();				//16回左回転、つまり4周回転
 						half_sectionD2();
 					}
 					break;
@@ -1948,7 +1973,7 @@ void test_run3(void){
 					ms_wait(500);
 					for(i = 0; i < 1; i++){
 						half_sectionA2();
-						slalom_R902();				//1回右回転、つまり1/4周回転
+						slalom_R90();				//1回右回転、つまり1/4周回転
 						half_sectionD2();
 					}
 					break;
@@ -1961,7 +1986,7 @@ void test_run3(void){
 					ms_wait(500);
 					for(i = 0; i < 1; i++){
 						half_sectionA2();
-						slalom_L902();				//1回左回転、つまり1/4周回転
+						slalom_L90();				//1回左回転、つまり1/4周回転
 						half_sectionD2();
 					}
 					break;
