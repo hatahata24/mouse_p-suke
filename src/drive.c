@@ -941,7 +941,7 @@ void one_section2(void){
 void one_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveA2(1000, 400, 700, PULSE_SEC_HALF*2);				//1区画のパルス分加速走行。走行後は停止しない
+	driveA2(3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分加速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -955,7 +955,7 @@ void one_sectionA2(void){
 void one_sectionD2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveD2(-1000, 400, 700, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
+	driveD2(-3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -1645,14 +1645,14 @@ void slalom_run(void){
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					set_positionX2(0);
+					set_positionX(0);
 					get_base();
 
-					searchC2();
+					searchC();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC2();
+					searchC();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1852,16 +1852,6 @@ void test_run2(void){
 
 					break;
 				case 6:
-					//----スラローム----
-					printf("Slalom.\n");
-					MF.FLAG.SCND = 0;
-					get_base();
-
-					ms_wait(500);
-					half_sectionA2();
-					slalom_R902();				//1回右回転、つまり1/4周回転
-					slalom_L902();				//1回右回転、つまり1/4周回転
-					half_sectionD2();
 					break;
 				case 7:
 					break;
