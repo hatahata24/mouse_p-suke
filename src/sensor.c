@@ -194,6 +194,13 @@ void TIM6_DAC1_IRQHandler(void){
 					dr_tmp += CTRL_CONT * dif_r;		//比例制御値を決定
 				}
 
+				if(CTRL_BASE_FL < ad_fl){
+					dl_tmp -= CTRL_F_CONT * (ad_fl - CTRL_BASE_FL);
+				}
+				if(CTRL_BASE_FR < ad_fr){
+					dr_tmp -= CTRL_F_CONT * (ad_fr - CTRL_BASE_FR);
+				}
+
 				if(CTRL_1WALL_L > dif_l){
 					dr_tmp += CTRL_1WALL_CONT * dif_r;	//片壁制御
 				}
