@@ -1104,14 +1104,14 @@ void slalom_R90(void){
 	style = 0;
 	MF.FLAG.SLLM = 1;
 
-	t_cnt_l = t_cnt_r = str_t_cnt;
+	t_cnt_l = t_cnt_r = str_t_cnt+50;
 
 	turn = 1;												//右回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU1(SLALOM_U1);
+	slalomU1(SLALOM_U1-10);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	slalomR1(SLALOM_R1);
-	slalomR2(SLALOM_R2);
+	slalomR2(SLALOM_R2+18);
 	slalomR3(SLALOM_R3);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -1185,14 +1185,14 @@ void slalom_L90(void){
 
 	turn = 2;												//左回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU1(SLALOM_U1);
+	slalomU1(SLALOM_U1-5);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	slalomR1(SLALOM_R1);
-	slalomR2(SLALOM_R2);//-7
+	slalomR2(SLALOM_R2+14);
 	slalomR3(SLALOM_R3);
 	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU2(SLALOM_U2);//+1
+	slalomU2(SLALOM_U2);
 
 	turn = 0;
 	style = 0;
