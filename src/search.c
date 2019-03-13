@@ -89,7 +89,6 @@ void searchA(){
 															//現在座標とgoal座標が等しくなるまで実行
 	ms_wait(2000);											//スタートでは***2秒以上***停止しなくてはならない
 	rotate_180();											//180度回転
-	//conf_route();
 
 	if(!MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -154,7 +153,6 @@ void searchA2(){
 															//現在座標とgoal座標が等しくなるまで実行
 	ms_wait(2000);											//スタートでは***2秒以上***停止しなくてはならない
 	rotate_1802();											//180度回転
-	//conf_route();
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -231,7 +229,6 @@ void searchB(void){
 
 	ms_wait(2000);
 	rotate_180();											//180度回転
-	//conf_route();
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -277,14 +274,14 @@ void searchB2(void){
 		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
 			//----前進----
 			case 0x88:
-				if(MF.FLAG.SCND == 1){
+				if(MF.FLAG.SCND){
 					if(((route[r_cnt-1] & route[r_cnt]) == 0x88) && (route[r_cnt] != 0xff)){
 						one_sectionA2();
-						i = 1;
+						MF.FLAG.ACCL2 = 1;
 					}
 					else if((route[r_cnt] & 0x55) && (i == 1)){
 						one_sectionD2();
-						i = 0;
+						MF.FLAG.ACCL2 = 0;
 					}else{
 						one_sectionU2();
 					}
@@ -324,7 +321,6 @@ void searchB2(void){
 
 	ms_wait(2000);
 	rotate_1802();											//180度回転
-	//conf_route();
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -399,7 +395,6 @@ void searchC(void){
 
 	ms_wait(2000);
 	rotate_180();											//180度回転
-	//conf_route();
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
@@ -486,7 +481,6 @@ void searchC2(void){
 
 	ms_wait(2000);
 	rotate_1802();											//180度回転
-	//conf_route();
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
