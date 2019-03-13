@@ -60,6 +60,8 @@
 	volatile float speedR, old_speedR;
 	volatile float target, target_flag;
 
+	volatile int16_t accel_hs, speed_max_hs;
+
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern const uint16_t table[];
@@ -77,6 +79,8 @@
 	extern volatile float speedL, old_speedL;
 	extern volatile float speedR, old_speedR;
 	extern volatile float target, target_flag;
+
+	extern volatile int16_t accel_hs, speed_max_hs;
 #endif
 
 
@@ -153,6 +157,6 @@ void test_run2(void);			//テスト走行2物理量導入
 void test_run3(void);			//テスト走行3既知区間加速
 void sample_course_run(void);		//試験コース走行
 void perfect_run(void);			//本番用走行
-
+void perfect_slalom(void);
 
 #endif /* DRIVE_H_ */

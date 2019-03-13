@@ -941,7 +941,11 @@ void one_section2(void){
 void one_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveA2(3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分加速走行。走行後は停止しない
+	//driveA2(3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分加速走行。走行後は停止しない
+
+	accel_hs = 3000;
+	speed_max_hs = 600;
+	driveA2(accel_hs, 400, speed_max_hs, PULSE_SEC_HALF*2);				//1区画のパルス分加速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -955,7 +959,11 @@ void one_sectionA2(void){
 void one_sectionD2(void){
 
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	driveD2(-3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
+	//driveD2(-3000, 400, 1000, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
+
+	//accel_hs = 3000;
+	//speed_max_hs = 1000;
+	driveD2(-1*accel_hs, 400, speed_max_hs, PULSE_SEC_HALF*2);				//1区画のパルス分減速走行。走行後は停止しない
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
@@ -1570,7 +1578,7 @@ void slalom_run(void){
 					//---二次探索スラローム走行----
 					printf("Second Run. (Slalom)\n");
 
-					MF.FLAG.SLLM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -2268,6 +2276,189 @@ void perfect_run(void){
 
 					goal_x = 7;
 					goal_y = 7;
+
+					break;
+
+				case 6:
+					break;
+
+				case 7:
+					perfect_slalom();
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//perfect_slalom
+// 本番用走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void perfect_slalom(void){
+
+	int mode = 0;
+	printf("Perfect Slalom, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Perfect Slalom, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Perfect Slalom, Mode : %d\n", mode);
+		}
+
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			switch(mode){
+
+				case 0:
+					//セットポジション用
+					printf("Set Position.\n");
+
+					set_positionX(0);
+
+					break;
+
+				case 1:
+					//----一次探索走行----
+					printf("First Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 2:
+					//----一次探索連続走行----
+					printf("First Run. (Continuous)\n");
+
+					MF.FLAG.SCND = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					accel_hs = 3000;
+					speed_max_hs = 600;
+
+					set_positionX(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 3:
+					//----二次探索走行----
+					printf("Second Run. (Continuous)\n");
+					drive_enable_motor();
+
+					MF.FLAG.SCND = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					accel_hs = 3000;
+					speed_max_hs = 800;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 4:
+					//----一次探索スラローム走行----
+					printf("First Run. (Slalom)\n");
+
+					MF.FLAG.SCND = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					accel_hs = 3000;
+					speed_max_hs = 1000;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 5:
+					//---二次探索スラローム走行----
+					printf("Second Run. (Slalom)\n");
+
+					MF.FLAG.SCND = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					accel_hs = 3000;
+					speed_max_hs = 1100;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
 
 					break;
 
