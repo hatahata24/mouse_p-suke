@@ -404,7 +404,6 @@ void searchC(void){
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
 	}
-
 }
 
 

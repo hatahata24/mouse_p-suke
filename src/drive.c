@@ -2078,15 +2078,15 @@ void sample_course_run(void){
 					for(i = 0; i < 3-1; i++){
 						one_sectionU2();			//一区画のパルス分等速走行
 					}
-					slalom_R902();
+					slalom_R90();
 					one_sectionU2();			//一区画のパルス分等速走行
-					slalom_R902();
-					slalom_R902();
-					slalom_L902();
-					slalom_L902();
-					slalom_R902();
-					slalom_L902();
-					slalom_L902();
+					slalom_R90();
+					slalom_R90();
+					slalom_L90();
+					slalom_L90();
+					slalom_R90();
+					slalom_L90();
+					slalom_L90();
 					for(i = 0; i < 3-1; i++){
 						one_sectionU2();			//一区画のパルス分等速走行
 					}

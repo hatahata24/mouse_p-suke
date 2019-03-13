@@ -76,6 +76,11 @@ void led_write(uint8_t led1, uint8_t led2, uint8_t led3){
 }
 
 
+void volatile_init(){
+
+}
+
+
 
 
 
