@@ -56,7 +56,7 @@
 
 	//====物理量走行関連====
 	volatile float speedL, speedR;
-	volatile uint16_t accel, speed_min, speed_max;
+	volatile int16_t accel, speed_min, speed_max;
 	volatile float widthR, widthL;
 
 	volatile uint16_t target, target_flag;			//スラローム走行時使用
@@ -75,7 +75,7 @@
 
 	//====物理量走行関連====
 	extern volatile float speedL, speedR;
-	extern volatile uint16_t accel, speed_min, speed_max;
+	extern volatile int16_t accel, speed_min, speed_max;
 	extern volatile float widthR, widthL;
 
 	extern volatile uint16_t target, target_flag;	//スラローム走行時使用
