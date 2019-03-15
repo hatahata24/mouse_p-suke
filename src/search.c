@@ -274,20 +274,19 @@ void searchB2(void){
 		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
 			//----前進----
 			case 0x88:
-				if(MF.FLAG.SCND){
+				if(MF.FLAG.SCND == 1 && MF.FLAG.ACCL2 == 1){
 					if(((route[r_cnt-1] & route[r_cnt]) == 0x88) && (route[r_cnt] != 0xff)){
 						one_sectionA2();
-						MF.FLAG.ACCL2 = 1;
+						i = 1;
 					}
 					else if((route[r_cnt] & 0x55) && (i == 1)){
 						one_sectionD2();
-						MF.FLAG.ACCL2 = 0;
+						i = 0;
 					}else{
 						one_sectionU2();
 					}
 				}else{
 					one_sectionU2();
-
 				}
 				break;
 			//----右折----
@@ -437,7 +436,7 @@ void searchC2(void){
 		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
 			//----前進----
 			case 0x88:
-				if(MF.FLAG.SCND == 1){
+				if(MF.FLAG.SCND == 1 && MF.FLAG.ACCL2 == 1){
 					if(((route[r_cnt-1] & route[r_cnt]) == 0x88) && (route[r_cnt] != 0xff)){
 						one_sectionA2();
 						i = 1;

@@ -42,6 +42,7 @@
 //====変数====
 #ifdef MAIN_C_										//main.cからこのファイルが呼ばれている場合
 	/*グローバル変数の定義*/
+	//====テーブル走行関連====
 	const uint16_t table[] = {
 		#include "table.h"
 	};												//table.hに貼り付けた値を保持する配列
@@ -53,17 +54,16 @@
 	volatile uint8_t turn;							//回転方向確認用　1=右回転　2=左回転
 	volatile uint8_t style;							//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	volatile float speed, widthR, widthL;
-	volatile float speed_min, speed_max, accel;
+	//====物理量走行関連====
+	volatile float speedL, speedR;
+	volatile uint16_t accel, speed_min, speed_max;
+	volatile float widthR, widthL;
 
-	volatile float speedL, old_speedL;
-	volatile float speedR, old_speedR;
-	volatile float target, target_flag;
-
-	volatile int16_t accel_hs, speed_max_hs;
-
+	volatile uint16_t target, target_flag;			//スラローム走行時使用
+	volatile int16_t accel_hs, speed_max_hs;		//既知区間加速時使用
 #else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
+	//====テーブル走行関連====
 	extern const uint16_t table[];
 	extern volatile int16_t t_cnt_l, t_cnt_r;		//符号付き整数型に変更
 	extern volatile int16_t min_t_cnt, str_t_cnt, max_t_cnt;	//符号付き整数型に変更
@@ -73,14 +73,13 @@
 	extern volatile uint8_t turn;					//回転方向確認用　1=右回転　2=左回転
 	extern volatile uint8_t style;					//スラロームの走行モード確認用　1=直線1　2=曲線1　3=曲線2　4=曲線3　5=直線2
 
-	extern volatile float speed, widthR, widthL;
-	extern volatile float speed_min, speed_max, accel;
+	//====物理量走行関連====
+	extern volatile float speedL, speedR;
+	extern volatile uint16_t accel, speed_min, speed_max;
+	extern volatile float widthR, widthL;
 
-	extern volatile float speedL, old_speedL;
-	extern volatile float speedR, old_speedR;
-	extern volatile float target, target_flag;
-
-	extern volatile int16_t accel_hs, speed_max_hs;
+	extern volatile uint16_t target, target_flag;	//スラローム走行時使用
+	extern volatile int16_t accel_hs, speed_max_hs;	//既知区間加速時使用
 #endif
 
 
@@ -98,55 +97,57 @@ void drive_start2(void);
 void drive_stop(void);
 void drive_stop2(void);
 void drive_set_dir(uint8_t);	//進む方向の設定
-float dist_pulse(uint16_t);
+float dist_pulse(uint16_t);		//距離(mm)をパルス数に変換
 
 //====走行系====
 //----基幹関数----
 void driveA(uint16_t);			//加速走行
-void driveA2(uint16_t, uint16_t, uint16_t, uint16_t);		//加速走行
 void driveD(uint16_t);			//減速走行
-void driveD2(int16_t, uint16_t, uint16_t, uint16_t);		//減速走行
 void driveU(uint16_t);			//等速走行（前の速度を維持）
-void driveU2(uint16_t);			//等速走行（前の速度を維持）
 void driveC(uint16_t);			//デフォルトインターバルで走行
-void driveC2(uint16_t);			//デフォルトインターバルで走行
 void slalomU1(uint16_t);
-void slalomU12(uint16_t);
 void slalomR1(uint16_t);
-void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomR2(uint16_t);
-void slalomR22(uint16_t);
 void slalomR3(uint16_t);
-void slalomR32(int32_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomU2(uint16_t);
+
+void driveA2(uint16_t, uint16_t, uint16_t, uint16_t);		//加速走行
+void driveD2(int16_t, uint16_t, uint16_t, uint16_t);		//減速走行
+void driveU2(uint16_t);			//等速走行（前の速度を維持）
+void driveC2(uint16_t);			//デフォルトインターバルで走行
+void slalomU12(uint16_t);
+void slalomR12(uint16_t, uint16_t, uint16_t, uint16_t);
+void slalomR22(uint16_t);
+void slalomR32(int32_t, uint16_t, uint16_t, uint16_t, uint16_t);
 void slalomU22(uint16_t);
 
 
 //----上位関数----
 void half_sectionA(void);		//加速半区画
-void half_sectionA2(void);		//加速半区画
 void half_sectionD(void);		//減速半区画
-void half_sectionD2(void);		//減速半区画
 void one_section(void);			//加減速一区画
-void one_section2(void);		//加減速一区画
-void one_sectionA2(void);		//加速一区画
-void one_sectionD2(void);		//減速一区画
 void one_sectionU(void);		//等速一区画
-void one_sectionU2(void);		//等速一区画
 void rotate_R90(void);			//右90回転
-void rotate_R902(void);			//右90回転
 void rotate_L90(void);			//左90回転
-void rotate_L902(void);			//左90回転
 void rotate_180(void);			//180度回転
-void rotate_1802(void);			//180度回転
 void slalom_R90(void);			//スラローム右90回転
-void slalom_R902(void);			//スラローム右90回転
 void slalom_L90(void);			//スラローム左90回転
-void slalom_L902(void);			//スラローム左90回転
 void set_position(uint8_t);		//上下位置合わせ
-void set_position2(uint8_t);	//上下位置合わせ
 void set_positionX(uint8_t);	//上下左右位置合わせ
-void set_positionX2(uint8_t);	//上下左右位置合わせ
+
+void half_sectionA2(void);		//加速半区画
+void half_sectionD2(void);		//減速半区画
+void one_section2(void);		//加減速一区画
+void one_sectionA2(void);		//加速一区画　既知区間加速時の加速用
+void one_sectionD2(void);		//減速一区画　既知区間加速時の減速用
+void one_sectionU2(void);		//等速一区画
+void rotate_R902(void);			//右90回転
+void rotate_L902(void);			//左90回転
+void rotate_1802(void);			//180度回転
+void slalom_R902(void);			//スラローム右90回転	右旋回時に右輪が減速しない原因不明の事態に陥ったため物理量スラロームは不使用中
+void slalom_L902(void);			//スラローム左90回転　上記理由のため物理量スラロームは不使用中
+void set_position2(uint8_t);	//上下位置合わせ
+void set_positionX2(uint8_t);	//上下左右位置合わせ　初めのケツあて時のモータ音に違和感
 
 
 //----走行関数----
@@ -155,8 +156,8 @@ void slalom_run(void);			//スラローム走行
 void test_run(void);			//テスト走行
 void test_run2(void);			//テスト走行2物理量導入
 void test_run3(void);			//テスト走行3既知区間加速
-void sample_course_run(void);		//試験コース走行
+void sample_course_run(void);	//試験コース走行
 void perfect_run(void);			//本番用走行
-void perfect_slalom(void);
+void perfect_slalom(void);		//本番用スラローム走行
 
 #endif /* DRIVE_H_ */

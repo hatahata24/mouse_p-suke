@@ -76,14 +76,6 @@ void led_write(uint8_t led1, uint8_t led2, uint8_t led3){
 }
 
 
-void volatile_init(){
-
-}
-
-
-
-
-
 
 int main(void){
 
@@ -106,7 +98,6 @@ int main(void){
 	printf("Mode : %d\n", mode);
 
 	while(1){
-
 		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
@@ -126,47 +117,40 @@ int main(void){
 			}
 			printf("Mode : %d\n", mode);
 		}
-
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
 			switch(mode){
-
 				case 0:
 					//----セットポジション用----
 					printf("Set Position.\n");
 					drive_enable_motor();
 					set_positionX(0);
 					drive_disable_motor();
-
 					break;
 
 				case 1:
 					//----超新地走行----
 					printf("Test Run.\n");
 					simple_run();
-
 					break;
 
 				case 2:
 					//----スラローム走行----
 					printf("slalom Run.\n");
 					slalom_run();
-
 					break;
 
 				case 3:
 					//----テスト走行----
 					printf("Test Run.\n");
 					test_run();
-
 					break;
 
 				case 4:
 					//----テスト走行2----
 					printf("Test Run2.\n");
 					test_run2();
-
 					break;
 
 				case 5:
@@ -175,18 +159,15 @@ int main(void){
 					while(1){
 						get_wall_info();
 						led_write(wall_info & 0x11, wall_info & 0x88, wall_info & 0x44);
-
 						printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
 						//printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
-
 						ms_wait(333);
 					}
-
 					break;
 
 				case 6:
-					//----テスト走行2----
-					printf("Test Run2.\n");
+					//----テスト走行3----
+					printf("Test Run3.\n");
 					test_run3();
 					//sample_course_run();
 					break;
