@@ -71,7 +71,7 @@
 #define CTRL_BASE_L		50//100		//左制御閾値
 #define CTRL_BASE_R		50//100		//右制御閾値
 #define CTRL_MAX		3500		//制御量上限値
-#define CTRL_CONT		0.7F//0.3F	//比例制御係数
+#define CTRL_CONT		0.5F//0.3F	//比例制御係数
 
 //----前壁制御----
 #define CTRL_BASE_FL	1000		//左前センサー

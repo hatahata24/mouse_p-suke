@@ -934,8 +934,8 @@ void one_sectionA2(void){
 
 	MF.FLAG.CTRL = 1;												//制御を有効にする
 
-	accel_hs = 3000;
-	speed_max_hs = 600;
+	//accel_hs = 3000;
+	//speed_max_hs = 600;
 	driveA2(accel_hs, 400, speed_max_hs, PULSE_SEC_HALF*2);			//1区画のパルス分加速走行。走行後は停止しない
 	get_wall_info();												//壁情報を取得，片壁制御の有効・無効の判断
 }
