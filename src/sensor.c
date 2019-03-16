@@ -197,21 +197,21 @@ void TIM6_DAC1_IRQHandler(void){
 				}
 				if(CTRL_BASE_R < dif_r){
 					if(MF.FLAG.ACCL2){							//既知区間加速の時
-						dl_tmp += -1 * CTRL_CONT*0.3 * dif_l;	//比例制御値を決定
-						dr_tmp += CTRL_CONT*0.3 * dif_l;		//比例制御値を決定
+						dl_tmp += -1 * CTRL_CONT*0.3 * dif_r;	//比例制御値を決定
+						dr_tmp += CTRL_CONT*0.3 * dif_r;		//比例制御値を決定
 					}else{
-						dl_tmp += -1 * CTRL_CONT * dif_l;		//比例制御値を決定
-						dr_tmp += CTRL_CONT * dif_l;			//比例制御値を決定
+						dl_tmp += -1 * CTRL_CONT * dif_r;		//比例制御値を決定
+						dr_tmp += CTRL_CONT * dif_r;			//比例制御値を決定
 					}
 				}
-				//前壁制御の判断と制御値の算出
+/*				//前壁制御の判断と制御値の算出
 				if(CTRL_BASE_FL < ad_fl){						//左前壁
 					dl_tmp -= CTRL_F_CONT * (ad_fl - CTRL_BASE_FL);
 				}
 				if(CTRL_BASE_FR < ad_fr){						//右前壁
 					dr_tmp -= CTRL_F_CONT * (ad_fr - CTRL_BASE_FR);
 				}
-				//片壁制御の判断と制御値の算出
+*/				//片壁制御の判断と制御値の算出
 				if(CTRL_1WALL_L > dif_l){
 					dr_tmp += CTRL_1WALL_CONT * dif_r;			//左壁なし、右壁のみの片壁制御
 				}

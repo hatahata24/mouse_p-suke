@@ -62,10 +62,10 @@
 		センサ系
 ------------------------------------------------------------*/
 //----壁判断閾値（しきい値）----
-#define WALL_BASE_FR 	20			//前壁右センサ
-#define WALL_BASE_FL 	100			//前壁左センサ
+#define WALL_BASE_FR 	15//20			//前壁右センサ
+#define WALL_BASE_FL 	50//100			//前壁左センサ
 #define WALL_BASE_R		150			//右壁センサ
-#define WALL_BASE_L 	50     	//左壁センサ
+#define WALL_BASE_L 	50     		//左壁センサ
 
 //----制御閾値（しきい値）----
 #define CTRL_BASE_L		50//100		//左制御閾値
@@ -94,8 +94,8 @@
 		探索系
 ------------------------------------------------------------*/
 //----ゴール座標----
-#define GOAL_X 6	//7
-#define GOAL_Y 3	//7
+#define GOAL_X 7	//7
+#define GOAL_Y 4	//7
 
 
 #endif /* PARAMS_H_ */

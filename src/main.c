@@ -168,8 +168,8 @@ int main(void){
 				case 6:
 					//----テスト走行3----
 					printf("Test Run3.\n");
-					test_run3();
-					//sample_course_run();
+					//test_run3();
+					sample_course_run();
 					break;
 
 				case 7:
