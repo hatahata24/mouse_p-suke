@@ -266,7 +266,7 @@ void searchB2(void){
 	make_smap();											//歩数マップ作成
 	make_route();											//最短経路探索（route配列に動作が格納される）
 
-	int i = 0;
+	H_accel_flag = 0;
 
 	//====探索走行====
 	do{
@@ -277,11 +277,11 @@ void searchB2(void){
 				if(MF.FLAG.SCND == 1 && MF.FLAG.ACCL2 == 1){
 					if(((route[r_cnt-1] & route[r_cnt]) == 0x88) && (route[r_cnt] != 0xff)){
 						one_sectionA2();
-						i = 1;
+						H_accel_flag = 1;
 					}
-					else if((route[r_cnt] & 0x55) && (i == 1)){
+					else if((route[r_cnt] & 0x55) && (H_accel_flag == 1)){
 						one_sectionD2();
-						i = 0;
+						H_accel_flag = 0;
 					}else{
 						one_sectionU2();
 					}
@@ -428,7 +428,7 @@ void searchC2(void){
 	make_smap();											//歩数マップ作成
 	make_route();											//最短経路探索（route配列に動作が格納される）
 
-	int i = 0;
+	H_accel_flag = 0;
 
 	//====探索走行====
 	do{
@@ -439,11 +439,11 @@ void searchC2(void){
 				if(MF.FLAG.SCND == 1 && MF.FLAG.ACCL2 == 1){
 					if(((route[r_cnt-1] & route[r_cnt]) == 0x88) && (route[r_cnt] != 0xff)){
 						one_sectionA2();
-						i = 1;
+						H_accel_flag = 1;
 					}
-					else if((route[r_cnt] & 0x55) && (i == 1)){
+					else if((route[r_cnt] & 0x55) && (H_accel_flag == 1)){
 						one_sectionD2();
-						i = 0;
+						H_accel_flag = 0;
 					}else{
 						one_sectionU2();
 					}

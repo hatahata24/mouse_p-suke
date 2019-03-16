@@ -187,16 +187,15 @@ void TIM6_DAC1_IRQHandler(void){
 
 				//壁制御の判断と制御値の算出
 				if(CTRL_BASE_L < dif_l){
-					if(MF.FLAG.ACCL2){							//既知区間加速の時
+					if(H_accel_flag == 1){							//既知区間加速の時
 						dl_tmp += CTRL_CONT*0.3 * dif_l;		//比例制御値を決定
 						dr_tmp += -1 * CTRL_CONT*0.3 * dif_l;	//比例制御値を決定
 					}else{
 						dl_tmp += CTRL_CONT * dif_l;			//比例制御値を決定
 						dr_tmp += -1 * CTRL_CONT * dif_l;		//比例制御値を決定
 					}
-				}
-				if(CTRL_BASE_R < dif_r){
-					if(MF.FLAG.ACCL2){							//既知区間加速の時
+				}else if(CTRL_BASE_R < dif_r){
+					if(H_accel_flag == 1){							//既知区間加速の時
 						dl_tmp += -1 * CTRL_CONT*0.3 * dif_r;	//比例制御値を決定
 						dr_tmp += CTRL_CONT*0.3 * dif_r;		//比例制御値を決定
 					}else{
@@ -213,10 +212,12 @@ void TIM6_DAC1_IRQHandler(void){
 				}
 */				//片壁制御の判断と制御値の算出
 				if(CTRL_1WALL_L > dif_l){
+					dl_tmp += -1 * CTRL_1WALL_CONT * dif_r;		//左壁なし、右壁のみの片壁制御
 					dr_tmp += CTRL_1WALL_CONT * dif_r;			//左壁なし、右壁のみの片壁制御
 				}
 				if(CTRL_1WALL_R > dif_r){
 					dl_tmp += CTRL_1WALL_CONT * dif_l;			//右壁なし、左壁のみの片壁制御
+					dr_tmp += -1 * CTRL_1WALL_CONT * dif_l;		//右壁なし、左壁のみの片壁制御
 				}
 
 				//一次保存した比例制御値をdlとdrに反映させる

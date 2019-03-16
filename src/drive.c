@@ -1542,7 +1542,7 @@ void slalom_run(void){
 					//----一次探索スラローム走行----
 					printf("First Run. (Slalom)\n");
 
-					MF.FLAG.SLLM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1565,7 +1565,7 @@ void slalom_run(void){
 					//---二次探索スラローム走行----
 					printf("Second Run. (Slalom)\n");
 
-					MF.FLAG.SLLM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1585,8 +1585,55 @@ void slalom_run(void){
 					break;
 
 				case 3:
+					//----二次探索スラローム走行+既知区間加速----
+					printf("Second Run. (Slalom+accel)\n");
+
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 600;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 4:
+					//----二次探索スラローム走行+既知区間加速----
+					printf("Second Run. (Slalom+accel)\n");
+
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 800;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					//----右90度スラローム回転*16----
-					printf("Slalom R90.\n");
+/*					printf("Slalom R90.\n");
 					get_base();
 					ms_wait(500);
 					for(i = 0; i < 16; i++){
@@ -1594,11 +1641,33 @@ void slalom_run(void){
 						slalom_R90();				//16回右回転、つまり4周回転
 						half_sectionD();
 					}
-					break;
+*/					break;
 
-				case 4:
+				case 5:
+					//----二次探索スラローム走行+既知区間加速----
+					printf("Second Run. (Slalom+accel)\n");
+
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 1000;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					//----左90度スラローム回転*16----
-					printf("Slalom L90.\n");
+/*					printf("Slalom L90.\n");
 					get_base();
 					ms_wait(500);
 					for(i = 0; i < 16; i++){
@@ -1606,9 +1675,9 @@ void slalom_run(void){
 						slalom_L90();				//16回左回転、つまり4周回転
 						half_sectionD();
 					}
-					break;
+*/					break;
 
-				case 5:
+				case 6:
 					//----右90度スラローム回転----
 					printf("Slalom R90.\n");
 					get_base();
@@ -1620,7 +1689,7 @@ void slalom_run(void){
 					}
 					break;
 
-				case 6:
+				case 7:
 					//----左90度スラローム回転----
 					printf("Slalom L90.\n");
 					get_base();
@@ -1632,27 +1701,6 @@ void slalom_run(void){
 					}
 					break;
 
-				case 7:
-					//----一次探索スラローム走行----
-					printf("First Run. (Slalom)\n");
-
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					set_positionX(0);
-					get_base();
-
-					searchC();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchC();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					break;
 			}
 		}
 	}
