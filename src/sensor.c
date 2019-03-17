@@ -211,7 +211,7 @@ void TIM6_DAC1_IRQHandler(void){
 					dr_tmp -= CTRL_F_CONT * (ad_fr - CTRL_BASE_FR);
 				}
 */				//片壁制御の判断と制御値の算出
-				if(CTRL_1WALL_L > dif_l){
+/*				if(CTRL_1WALL_L > dif_l){
 					dl_tmp += -1 * CTRL_1WALL_CONT * dif_r;		//左壁なし、右壁のみの片壁制御
 					dr_tmp += CTRL_1WALL_CONT * dif_r;			//左壁なし、右壁のみの片壁制御
 				}
@@ -219,7 +219,7 @@ void TIM6_DAC1_IRQHandler(void){
 					dl_tmp += CTRL_1WALL_CONT * dif_l;			//右壁なし、左壁のみの片壁制御
 					dr_tmp += -1 * CTRL_1WALL_CONT * dif_l;		//右壁なし、左壁のみの片壁制御
 				}
-
+*/
 				//一次保存した比例制御値をdlとdrに反映させる
 				dl = max(min(CTRL_MAX, dl_tmp), -1 * CTRL_MAX);
 				dr = max(min(CTRL_MAX, dr_tmp), -1 * CTRL_MAX);
