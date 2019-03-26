@@ -2138,11 +2138,15 @@ void sample_course_run(void){
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 				case 2:
-					MF.FLAG.SCND = 1;
-					MF.FLAG.ACCL2 = 1;
+					led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+					get_base();
+
+					break;
+				case 3:
 					accel_hs = 3000;
 					speed_max_hs = 1100;
 
+					set_positionX2(0);
 
 					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
 
@@ -2204,11 +2208,73 @@ void sample_course_run(void){
 
 					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 
-
-					break;
-				case 3:
 					break;
 				case 4:
+					accel_hs = 3500;
+					speed_max_hs = 1200;
+
+					set_positionX2(0);
+
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
 					break;
 				case 5:
 					break;
@@ -2274,7 +2340,7 @@ void perfect_run(void){
 
 					MF.FLAG.SCND = 0;
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					set_positionX(0);
 					get_base();
@@ -2286,7 +2352,7 @@ void perfect_run(void){
 					searchB();
 
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					break;
 
@@ -2297,7 +2363,7 @@ void perfect_run(void){
 
 					MF.FLAG.SCND = 1;
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					set_positionX(0);
 					get_base();
@@ -2309,7 +2375,7 @@ void perfect_run(void){
 					searchB();
 
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					break;
 
@@ -2320,7 +2386,7 @@ void perfect_run(void){
 					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					set_positionX(0);
 					get_base();
@@ -2332,7 +2398,7 @@ void perfect_run(void){
 					searchC();
 
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					break;
 
@@ -2343,7 +2409,7 @@ void perfect_run(void){
 					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					set_positionX(0);
 					get_base();
@@ -2355,7 +2421,7 @@ void perfect_run(void){
 					searchC();
 
 					goal_x = 7;
-					goal_y = 15;
+					goal_y = 7;
 
 					break;
 
@@ -2421,8 +2487,8 @@ void perfect_slalom(void){
 					printf("First Run.\n");
 					MF.FLAG.SCND = 0;
 					MF.FLAG.ACCL2 = 0;
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 
 					set_positionX2(0);
 					get_base();
@@ -2433,8 +2499,8 @@ void perfect_slalom(void){
 					goal_x = goal_y = 0;
 					searchC2();
 
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 2:
@@ -2444,8 +2510,8 @@ void perfect_slalom(void){
 					MF.FLAG.ACCL2 = 1;
 					accel_hs = 3000;
 					speed_max_hs = 600;
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 
 					set_positionX2(0);
 					get_base();
@@ -2456,8 +2522,8 @@ void perfect_slalom(void){
 					goal_x = goal_y = 0;
 					searchC2();
 
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 3:
@@ -2467,8 +2533,8 @@ void perfect_slalom(void){
 					MF.FLAG.ACCL2 = 1;
 					accel_hs = 3000;
 					speed_max_hs = 800;
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 
 					set_positionX2(0);
 					get_base();
@@ -2479,8 +2545,8 @@ void perfect_slalom(void){
 					goal_x = goal_y = 0;
 					searchC2();
 
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 4:
@@ -2490,8 +2556,8 @@ void perfect_slalom(void){
 					MF.FLAG.ACCL2 = 1;
 					accel_hs = 3000;
 					speed_max_hs = 1000;
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 
 					set_positionX2(0);
 					get_base();
@@ -2502,8 +2568,8 @@ void perfect_slalom(void){
 					goal_x = goal_y = 0;
 					searchC2();
 
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 5:
@@ -2513,8 +2579,8 @@ void perfect_slalom(void){
 					MF.FLAG.ACCL2 = 1;
 					accel_hs = 3000;
 					speed_max_hs = 1100;
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 
 					set_positionX2(0);
 					get_base();
@@ -2525,8 +2591,8 @@ void perfect_slalom(void){
 					goal_x = goal_y = 0;
 					searchC2();
 
-					goal_x = 6;
-					goal_y = 14;
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 6:
