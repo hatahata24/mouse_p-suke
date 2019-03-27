@@ -500,6 +500,7 @@ void searchD() {													//一次走行で全面探索
 		//====歩数等初期化====
 		m_step = r_cnt = 0;											//歩数と経路カウンタの初期化
 		find_pregoal();												//仮goalまでの歩数マップの初期化
+		if(allmap_flag) break;
 		make_smap2();
 		make_route();												//最短経路探索(route配列に動作が格納される)
 		//====探索走行====
@@ -946,7 +947,7 @@ void find_pregoal()
 	m_step = 0;													//現在記入した最大の歩数となる
 
 	//====歩数カウンタの重みづけ====
-	int straight = 3;
+	//int straight = 3;
 	int turn = 1;
 
 	//====自分の座標にたどり着くまでループ====
@@ -1015,7 +1016,8 @@ void find_pregoal()
 		}
 		//====歩数カウンタのインクリメント====
 		m_step++;
-	} while (break_flag == 0);		//未探索壁ありマスを見つけるまで実行
+		if(m_step > 500) allmap_flag = 1;
+	} while (break_flag == 0 && allmap_flag != 1);		//未探索壁ありマスを見つけるまで実行
 }
 
 
@@ -1045,7 +1047,7 @@ void make_smap2()
 	m_step = 0;															//現在記入した最大の歩数となる
 
 	//====歩数カウンタの重みづけ====
-	int straight = 3;
+	//int straight = 3;
 	int turn = 5;
 
 	//====自分の座標にたどり着くまでループ====
