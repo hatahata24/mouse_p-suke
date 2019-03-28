@@ -94,8 +94,8 @@
 		探索系
 ------------------------------------------------------------*/
 //----ゴール座標----
-#define GOAL_X 4	//7
-#define GOAL_Y 4	//7
+#define GOAL_X 6	//7
+#define GOAL_Y 3	//7
 
 
 #endif /* PARAMS_H_ */

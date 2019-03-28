@@ -53,7 +53,8 @@ struct coordinate_and_direction{
 #ifdef MAIN_C_											//main.cからこのファイルが呼ばれている場合
 	/*グローバル変数の定義*/
 	uint8_t map[16][16];								//マップ格納配列
-	uint8_t smap[16][16];								//歩数マップ格納配列
+	//uint8_t smap[16][16];								//歩数マップ格納配列
+	uint16_t smap[16][16];								//歩数マップ格納配列
 	uint8_t wall_info;									//壁情報格納変数
 	uint8_t goal_x, goal_y;								//ゴール座標
 	uint8_t route[256];									//最短経路格納配列
@@ -64,14 +65,15 @@ struct coordinate_and_direction{
 #else													//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern uint8_t map[16][16];							//マップ格納配列
-	extern uint8_t smap[16][16];						//歩数マップ格納配列
+	//extern uint8_t smap[16][16];						//歩数マップ格納配列
+	extern uint16_t smap[16][16];						//歩数マップ格納配列
 	extern uint8_t wall_info;							//壁情報格納変数
 	extern uint8_t goal_x, goal_y;						//ゴール座標
 	extern uint8_t route[256];							//最短経路格納配列
 	extern uint8_t r_cnt;								//経路カウンタ
 
-	uint8_t H_accel_flag;
-	uint8_t run_dir;
+	extern uint8_t H_accel_flag;
+	extern uint8_t run_dir;
 #endif
 
 
