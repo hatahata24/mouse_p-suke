@@ -53,19 +53,27 @@ struct coordinate_and_direction{
 #ifdef MAIN_C_											//main.cからこのファイルが呼ばれている場合
 	/*グローバル変数の定義*/
 	uint8_t map[16][16];								//マップ格納配列
-	uint8_t smap[16][16];								//歩数マップ格納配列
+	//uint8_t smap[16][16];								//歩数マップ格納配列
+	uint16_t smap[16][16];								//歩数マップ格納配列
 	uint8_t wall_info;									//壁情報格納変数
 	uint8_t goal_x, goal_y;								//ゴール座標
 	uint8_t route[256];									//最短経路格納配列
 	uint8_t r_cnt;										//経路カウンタ
+
+	uint8_t H_accel_flag;
+	uint8_t run_dir;
 #else													//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern uint8_t map[16][16];							//マップ格納配列
-	extern uint8_t smap[16][16];						//歩数マップ格納配列
+	//extern uint8_t smap[16][16];						//歩数マップ格納配列
+	extern uint16_t smap[16][16];						//歩数マップ格納配列
 	extern uint8_t wall_info;							//壁情報格納変数
 	extern uint8_t goal_x, goal_y;						//ゴール座標
 	extern uint8_t route[256];							//最短経路格納配列
 	extern uint8_t r_cnt;								//経路カウンタ
+
+	extern uint8_t H_accel_flag;
+	extern uint8_t run_dir;
 #endif
 
 
@@ -77,8 +85,12 @@ struct coordinate_and_direction{
 void search_init(void);
 
 void searchA();											//1区画停止型探索走行
+void searchA2();										//1区画停止型探索走行
 void searchB();											//連続探索走行
+void searchB2();										//連続探索走行
 void searchC();											//スラローム探索走行
+void searchC2();										//スラローム探索走行
+void searchD();											//全面探索走行
 
 void adv_pos();											//マウスの位置情報を前進
 void conf_route();										//次ルートの確認

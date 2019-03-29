@@ -77,9 +77,6 @@ void led_write(uint8_t led1, uint8_t led2, uint8_t led3){
 
 
 
-
-
-
 int main(void){
 
 	ms_wait(12);	// 12*8 = 96 ms
@@ -101,7 +98,6 @@ int main(void){
 	printf("Mode : %d\n", mode);
 
 	while(1){
-
 		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
@@ -121,173 +117,62 @@ int main(void){
 			}
 			printf("Mode : %d\n", mode);
 		}
-
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
 			switch(mode){
-
 				case 0:
-					//セットポジション用
+					//----セットポジション用----
 					printf("Set Position.\n");
 					drive_enable_motor();
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					drive_disable_motor();
-
 					break;
 
 				case 1:
-					//----一次探索走行----
-					printf("First Run.\n");
-					drive_enable_motor();
-
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
-					get_base();		//Original
-
-					searchA();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchA();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
+					//----超新地走行----
+					printf("Test Run.\n");
+					simple_run();
 					break;
 
 				case 2:
-					//----一次探索連続走行----
-					printf("First Run. (Continuous)\n");
-					drive_enable_motor();
-
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
-					get_base();		//Original
-
-					searchB();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchB();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
+					//----スラローム走行----
+					printf("slalom Run.\n");
+					slalom_run();
 					break;
 
 				case 3:
-					//----二次探索走行----
-					printf("Second Run. (Continuous)\n");
-					drive_enable_motor();
-
-					MF.FLAG.SCND = 1;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
-					get_base();		//Original
-
-					searchB();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchB();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					drive_disable_motor();
 					break;
 
 				case 4:
+					//----テスト走行選択----
+					printf("Test Select.\n");
+					test_select();
+					break;
+
+				case 5:
 					//----センサチェック----
 					printf("Sensor Check.\n");
 					while(1){
 						get_wall_info();
 						led_write(wall_info & 0x11, wall_info & 0x88, wall_info & 0x44);
-
 						printf("ad_l : %d, ad_fl : %d, ad_fr : %d, ad_r : %d\n", ad_l, ad_fl, ad_fr, ad_r);
 						//printf("dif_l : %d, dif_r : %d\n", dif_l, dif_r);
-						/*if(wall_info & 0x11){
-							printf("Left : [X], ");
-						}else{
-							printf("Left : [ ], ");
-						}
-						if(wall_info & 0x88){
-							printf("Front : [X], ");
-						}else{
-							printf("Front : [ ], ");
-						}
-						if(wall_info & 0x44){
-							printf("Right : [X]\n");
-						}else{
-							printf("Right : [ ]\n");
-						}*/
-
 						ms_wait(333);
 					}
 					break;
 
-				case 5:
-					//----テスト走行----
-					printf("Test Run.\n");
-					test_run();
-					break;
-
 				case 6:
-					//----一次探索スラローム走行----
-					printf("slalom Run.\n");
-					slalom_run();
+					//----テスト走行3----
+					printf("Sample Course Run.\n");
+					sample_course_run();
+
 					break;
 
 				case 7:
 					//----本番用走行モード----
 					printf("slalom Run.\n");
 					perfect_run();
-					break;
-
 					break;
 			}
 		}
