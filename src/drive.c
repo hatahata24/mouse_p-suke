@@ -1318,7 +1318,7 @@ void set_positionX2(uint8_t sw){
 void defo_test(void){
 
 	int mode = 0;
-	printf("Test Run, Mode : %d\n", mode);
+	printf("Test Defo Run, Mode : %d\n", mode);
 	drive_enable_motor();
 
 	while(1){
@@ -1330,7 +1330,7 @@ void defo_test(void){
 			if(mode > 7){
 				mode = 0;
 			}
-			printf("Test Run, Mode : %d\n", mode);
+			printf("Test Defo Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
 			ms_wait(100);
@@ -1339,7 +1339,7 @@ void defo_test(void){
 			if(mode < 0){
 				mode = 7;
 			}
-			printf("Test Run, Mode : %d\n", mode);
+			printf("Test Defo Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
@@ -1413,7 +1413,7 @@ void defo_test(void){
 void physic_test(void){
 
 	int mode = 0;
-	printf("Test Run2, Mode : %d\n", mode);
+	printf("Test Physic Run, Mode : %d\n", mode);
 	drive_enable_motor();
 
 	while(1){
@@ -1425,7 +1425,7 @@ void physic_test(void){
 			if(mode > 7){
 				mode = 0;
 			}
-			printf("Test Run2, Mode : %d\n", mode);
+			printf("Test Physic Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
 			ms_wait(100);
@@ -1434,7 +1434,7 @@ void physic_test(void){
 			if(mode < 0){
 				mode = 7;
 			}
-			printf("Test Run2, Mode : %d\n", mode);
+			printf("Test Physic Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
@@ -1517,7 +1517,7 @@ void physic_test(void){
 void accel_test(void){
 
 	int mode = 0;
-	printf("Test Run3, Mode : %d\n", mode);
+	printf("Test Accel Run, Mode : %d\n", mode);
 	drive_enable_motor();
 
 	while(1){
@@ -1529,7 +1529,7 @@ void accel_test(void){
 			if(mode > 7){
 				mode = 0;
 			}
-			printf("Test Run3, Mode : %d\n", mode);
+			printf("Test Accel Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
 			ms_wait(100);
@@ -1538,7 +1538,7 @@ void accel_test(void){
 			if(mode < 0){
 				mode = 7;
 			}
-			printf("Test Run3, Mode : %d\n", mode);
+			printf("Test Accel Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
@@ -1601,7 +1601,7 @@ void accel_test(void){
 void slalom_test(void){
 
 	int mode = 0;
-	printf("Slalom Test, Mode : %d\n", mode);
+	printf("Test Slalom Run, Mode : %d\n", mode);
 	drive_enable_motor();
 
 	while(1){
@@ -1613,7 +1613,7 @@ void slalom_test(void){
 			if(mode > 7){
 				mode = 0;
 			}
-			printf("Slalom Test, Mode : %d\n", mode);
+			printf("Test Slalom Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_DEC) ){
 			ms_wait(100);
@@ -1622,7 +1622,7 @@ void slalom_test(void){
 			if(mode < 0){
 				mode = 7;
 			}
-			printf("Slalom Test, Mode : %d\n", mode);
+			printf("Test Slalom Run, Mode : %d\n", mode);
 		}
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
@@ -1717,6 +1717,100 @@ void slalom_test(void){
 	drive_disable_motor();
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//search_test
+// 直線優先や全面探索のテスト走行
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void search_test(void){
+
+	int mode = 0;
+	printf("Test Search Run, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Search Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Search Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i = 0;
+			switch(mode){
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_position(0);
+					break;
+				case 1:
+					//----4区画等速走行----
+					printf("4 Section, Forward, Constant Speed.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					for(i = 0; i < 4; i++){
+						driveC(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
+						drive_wait();
+					}
+					break;
+				case 2:
+					//----右90度回転----
+					printf("Rotate R90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_R90();				//16回右90度回転、つまり4周回転
+					}
+					break;
+				case 3:
+					//----左90度回転----
+					printf("Rotate L90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_L90();				//16回左90度回転、つまり4周回転
+					}
+					break;
+				case 4:
+					//----180度回転----
+					printf("Rotate 180.\n");
+					for(i = 0; i < 8; i++){
+						rotate_180();				//8回右180度回転、つまり4周回転
+					}
+					break;
+				case 5:
+					//----4区画連続走行----
+					printf("4 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 4-1; i++){
+						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
+					}
+					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					break;
+				case 6:
+					break;
+				case 7:
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //test_select
@@ -1783,6 +1877,9 @@ void test_select(void){
 					break;
 
 				case 5:
+					//----探索テスト走行----
+					printf("Search Test Run.\n");
+					search_test();
 					break;
 
 				case 6:

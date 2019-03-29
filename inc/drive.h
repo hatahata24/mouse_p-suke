@@ -155,6 +155,8 @@ void defo_test(void);			//初期状態でのtableによるテスト走行
 void physic_test(void);			//物理量ベースによるテスト走行
 void accel_test(void);			//既知区間加速によるテスト走行
 void slalom_test(void);			//スラロームによるテスト走行
+void search_test(void);			//直線優先や全面探索のテスト走行
+
 void test_select(void);			//テスト走行選択
 
 void simple_run(void);			//超新地走行
