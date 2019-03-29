@@ -1752,7 +1752,6 @@ void search_test(void){
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
-			int i = 0;
 			switch(mode){
 				case 0:
 					//----尻当て----
@@ -1770,11 +1769,11 @@ void search_test(void){
 					set_positionX2(0);
 					get_base();
 
-					searchA2();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchA2();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1792,11 +1791,11 @@ void search_test(void){
 					set_positionX2(0);
 					get_base();
 
-					searchB2();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchB2();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1814,11 +1813,11 @@ void search_test(void){
 					set_positionX2(0);
 					get_base();
 
-					searchB2();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchB2();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -1840,26 +1839,36 @@ void search_test(void){
 					set_positionX2(0);
 					get_base();
 
-					searchB2();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchB2();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
 					break;
 				case 5:
-					//----4区画連続走行----
-					printf("4 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 4-1; i++){
-						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
-					}
-					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					//----直線優先走行をするための1次走行----
+					printf("First Run to Straight Priority Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchA2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchD();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 6:
 					break;
