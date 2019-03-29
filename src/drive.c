@@ -1942,6 +1942,7 @@ void simple_run(void){
 					goal_y = GOAL_Y;
 
 					set_positionX2(0);
+
 					get_base();
 
 					searchB2();
