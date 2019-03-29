@@ -33,6 +33,27 @@ void drive_init(void){
 	drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
 
 
+	//速度計算用
+	/*--------------------------------------------------------------------
+		TIM15 : 16ビットタイマ。時間計測に使う。出力はなし
+	--------------------------------------------------------------------*/
+	__HAL_RCC_TIM15_CLK_ENABLE();
+
+	//TIM15->CR1 = 0;						//タイマ無効
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM15->CR2 = 0;
+	TIM15->DIER = TIM_DIER_UIE;			//タイマ更新割り込みを有効に
+
+	TIM15->CNT = 0;						//タイマカウンタ値を0にリセット
+	TIM15->PSC = 64-1;					//タイマのクロック周波数をシステムクロック/64=1MHzに設定
+	TIM15->ARR = 1000-1;		//タイマカウンタの上限値。取り敢えずDEFAULT_INTERVAL(params.h)に設定
+
+	TIM15->EGR = TIM_EGR_UG;			//タイマ設定を反映させるためにタイマ更新イベントを起こす
+
+	NVIC_EnableIRQ(TIM1_BRK_TIM15_IRQn);			//タイマ更新割り込みハンドラを有効に
+	NVIC_SetPriority(TIM1_BRK_TIM15_IRQn, 2);	//タイマ更新割り込みの割り込み優先度を設定
+
+
 	//====PWM出力に使うタイマの設定====
 	/*--------------------------------------------------------------------
 		TIM16 : 16ビットタイマ。左モータの制御に使う。出力はTIM16_CH1(PB4)
@@ -57,6 +78,7 @@ void drive_init(void){
 	NVIC_SetPriority(TIM1_UP_TIM16_IRQn, 2);	//タイマ更新割り込みの割り込み優先度を設定
 
 	pin_set_alternate_function(PB4, 1);			//PB4 : TIM16_CH1はAF1に該当
+
 
 	/*--------------------------------------------------------------------
 		TIM17 : 16ビットタイマ。右モータの制御に使う。出力はTIM17_CH1(PB5)
@@ -127,6 +149,52 @@ Clockにはタイマの出力ピンを繋いであるので，タイマの周期
 今加減速のどの段階なのか（table[]の要素番号・インデックス）はt_cnt_l,t_cnt_rで記録している。
 **********/
 
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//TIM1_BRK_TIM15_IRQHandler
+// 16ビットタイマーTIM16の割り込み関数，速度計算用
+// 引数：無し
+// 戻り値：無し
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void TIM1_BRK_TIM15_IRQHandler(){
+
+	if( !(TIM15->SR & TIM_SR_UIF) ){
+		return;
+	}
+
+		if(style == 1){											//スラローム右折の場合
+			speedL += accel * 0.001;							//左輪速度をUP
+			speedR -= accel * 0.001;							//右輪速度をDOWN
+		}
+		if(style == 2){											//スラローム左折の場合
+			speedL -= accel * 0.001;							//左輪速度をDOWN
+			speedR += accel * 0.001;							//右輪速度をUP
+		}else{													//一般走行の場合
+			speedL += accel * 0.001;
+			speedR += accel * 0.001;
+		}
+
+		if(target_flag == 1){									//ターゲットフラグONの場合(slalomR32を参照)
+			if(style == 1){										//右折の場合
+				speedL = max (speedL , target);
+				speedR = min (speedR , target);					//左右輪が目標速度になるように
+			}
+			if(style == 2){										//左折の場合
+				speedL = min (speedL , target);
+				speedR = max (speedR , target);					//左右輪が目標速度になるように
+			}
+		}else{													//ターゲットフラグOFFの場合(slalomR32を参照)
+			speedL = max (min (speedL , speed_max) , speed_min);
+			speedR = max (min (speedR , speed_max) , speed_min);//左右輪が最大、最小スピードを上回る、下回らないように
+		}
+
+		widthL = ONE_STEP / speedL * 1000000;
+		widthR = ONE_STEP / speedR * 1000000;					//出力速度を出力パルス間隔に変換
+
+	TIM15->SR &= ~TIM_SR_UIF;
+}
+
+
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //TIM1_UP_TIM16_IRQHandler
 // 16ビットタイマーTIM16の割り込み関数，左モータの管理を行う
@@ -141,46 +209,50 @@ void TIM1_UP_TIM16_IRQHandler(){
 
 	pulse_l++;															//左パルスのカウンタをインクリメント
 
-	//====加減速処理====
-	//----減速処理----
-	if(MF.FLAG.DECL){													//減速フラグが立っている場合
-		t_cnt_l = max(t_cnt_l - 1, min_t_cnt);
-	}
-	//----加速処理----
-	else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
-		t_cnt_l = min(t_cnt_l + 1, str_t_cnt);
-	}
-	//----スラローム処理----
-	else if(MF.FLAG.SRRM){													//スラロームフラグが立っている場合
-		if(turn == 1){													//turn right
-			if(style == 2){
-				t_cnt_l = min(t_cnt_l + 10, max_t_cnt);
+	if(MF.FLAG.OLD){													//テーブル走行の場合
+		//====加減速処理====
+		//----減速処理----
+		if(MF.FLAG.DECL){												//減速フラグが立っている場合
+			t_cnt_l = max(t_cnt_l - 1, min_t_cnt);
+		}
+		//----加速処理----
+		else if(MF.FLAG.ACCL){											//加速フラグが立っている場合
+			t_cnt_l = min(t_cnt_l + 1, str_t_cnt);
+		}
+		//----スラローム処理----
+		else if(MF.FLAG.SLLM){											//スラロームフラグが立っている場合
+			if(turn == 1){												//右折の場合
+				if(style == 2){
+					t_cnt_l = min(t_cnt_l + 10, max_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_l = max(t_cnt_l - 10, str_t_cnt);
+				}
 			}
-			if(style == 4){
-				t_cnt_l = max(t_cnt_l - 10, str_t_cnt);
+			if(turn == 2){												//左折の場合
+				if(style == 2){
+					t_cnt_l = max(t_cnt_l - 10, min_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_l = min(t_cnt_l + 10, str_t_cnt);
+				}
 			}
 		}
-		if(turn == 2){													//turn left
-			if(style == 2){
-				t_cnt_l = max(t_cnt_l - 10, min_t_cnt);//100
-			}
-			if(style == 4){
-				t_cnt_l = min(t_cnt_l + 10, str_t_cnt);//100
-			}
+		//----デフォルトインターバル----
+		if(MF.FLAG.DEF){												//デフォルトインターバルフラグが立っている場合
+			TIM16->ARR = DEFAULT_INTERVAL - dl;							//デフォルトインターバルに制御を加えた値に設定
 		}
-	}
+		//----それ以外の時はテーブルカウンタの指し示すインターバル----
+		else {
+			TIM16->ARR = table[t_cnt_l] - dl;							//左モータインターバル設定
+		}
 
-
-	//----デフォルトインターバル----
-	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
-		TIM16->ARR = DEFAULT_INTERVAL - dl;								//デフォルトインターバルに制御を加えた値に設定
-	}
-	//----それ以外の時はテーブルカウンタの指し示すインターバル----
-	else {
-		TIM16->ARR = table[t_cnt_l] - dl;								//左モータインターバル設定
+	}else{																//物理量走行の場合
+		TIM16->ARR = widthL - dl;										//左モータインターバル設定
 	}
 
 	TIM16->SR &= ~TIM_SR_UIF;
+
 }
 
 
@@ -198,49 +270,50 @@ void TIM1_TRG_COM_TIM17_IRQHandler(){
 
 	pulse_r++;															//右パルスのカウンタをインクリメント
 
-	//====加減速処理====
-	//----減速処理----
-	if(MF.FLAG.DECL){													//減速フラグが立っている場合
-		t_cnt_r = max(t_cnt_r - 1, min_t_cnt);
-	}
-	//----加速処理----
-	else if(MF.FLAG.ACCL){												//加速フラグが立っている場合
-		t_cnt_r = min(t_cnt_r + 1, str_t_cnt);
-	}
-	//----スラローム処理----
-	else if(MF.FLAG.SRRM){												//スラロームフラグが立っている場合
-		if(turn == 1){													//turn right
-			if(style == 2){
-				t_cnt_r = max(t_cnt_r - 10, min_t_cnt);//100
+	if(MF.FLAG.OLD){													//テーブル走行の場合
+		//====加減速処理====
+		//----減速処理----
+		if(MF.FLAG.DECL){												//減速フラグが立っている場合
+			t_cnt_r = max(t_cnt_r - 1, min_t_cnt);
+		}
+		//----加速処理----
+		else if(MF.FLAG.ACCL){											//加速フラグが立っている場合
+			t_cnt_r = min(t_cnt_r + 1, str_t_cnt);
+		}
+		//----スラローム処理----
+		else if(MF.FLAG.SLLM){											//スラロームフラグが立っている場合
+			if(turn == 1){												//右折の場合
+				if(style == 2){
+					t_cnt_r = max(t_cnt_r - 10, min_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_r = min(t_cnt_r + 10, str_t_cnt);
+				}
 			}
-			if(style == 4){
-				t_cnt_r = min(t_cnt_r + 10, str_t_cnt);//100
+			if(turn == 2){												//左折の場合
+				if(style == 2){
+					t_cnt_r = min(t_cnt_r + 10, max_t_cnt);
+				}
+				if(style == 4){
+					t_cnt_r = max(t_cnt_r - 10, str_t_cnt);
+				}
 			}
 		}
-		if(turn == 2){													//turn left//turn right
-			if(style == 2){
-				t_cnt_r = min(t_cnt_r + 10, max_t_cnt);
-			}
-			if(style == 4){
-				t_cnt_r = max(t_cnt_r - 10, str_t_cnt);
-			}
+		//----デフォルトインターバル----
+		if(MF.FLAG.DEF){												//デフォルトインターバルフラグが立っている場合
+			TIM17->ARR = DEFAULT_INTERVAL - dr;							//デフォルトインターバルに制御を加えた値に設定
+		}
+		//----それ以外の時はテーブルカウンタの指し示すインターバル----
+		else {
+			TIM17->ARR = table[t_cnt_r] - dr;							//右モータインターバル設定
 		}
 
-	}
-
-
-	//----デフォルトインターバル----
-	if(MF.FLAG.DEF){													//デフォルトインターバルフラグが立っている場合
-		TIM17->ARR = DEFAULT_INTERVAL - dr;								//デフォルトインターバルに制御を加えた値に設定
-	}
-	//----それ以外の時はテーブルカウンタの指し示すインターバル----
-	else {
-		TIM17->ARR = table[t_cnt_r] - dr;								//右モータインターバル設定
+	}else{																//物理量走行の場合
+		TIM17->ARR = widthR - dr;										//右モータインターバル設定
 	}
 
 	TIM17->SR &= ~TIM_SR_UIF;
 }
-
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -262,11 +335,28 @@ void drive_reset_t_cnt(void){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void drive_start(void){
-
 	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
 	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
 	TIM17->CR1 |= TIM_CR1_CEN;	// Enable timer
+	MF.FLAG.OLD = 1;
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//drive_start2
+// 走行を開始する
+// （pulse_l,pulse_rを0にリセットしてタイマを有効にする）
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void drive_start2(void){
+	pulse_l = pulse_r = 0;		//走行したパルス数の初期化
+	TIM15->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM16->CR1 |= TIM_CR1_CEN;	// Enable timer
+	TIM17->CR1 |= TIM_CR1_CEN;	// Enable timer
+	MF.FLAG.OLD = 0;
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //drive_stop
@@ -276,12 +366,31 @@ void drive_start(void){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void drive_stop(void){
-
 	TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM17->CR1 &= ~TIM_CR1_CEN;	// Disable timer
 	TIM16->CNT = 0;				// Reset Counter
 	TIM17->CNT = 0;				// Reset Counter
+	MF.FLAG.OLD = 0;
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//drive_stop2
+// 走行を終了する
+// （タイマを止めてタイマカウント値を0にリセットする）
+// 引数1：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void drive_stop2(void){
+	TIM15->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM16->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM17->CR1 &= ~TIM_CR1_CEN;	// Disable timer
+	TIM15->CNT = 0;				// Reset Counter
+	TIM16->CNT = 0;				// Reset Counter
+	TIM17->CNT = 0;				// Reset Counter
+	MF.FLAG.OLD = 0;
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //drive_set_dir
@@ -314,6 +423,17 @@ void drive_set_dir(uint8_t d_dir){
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//dist_pulse
+// 距離をパルス数に変換する
+// 引数1：dist …… 変換してほしい距離
+// 戻り値：返還後のパルス数
+//+++++++++++++++++++++++++++++++++++++++++++++++
+float dist_pulse(uint16_t dist){
+	float pulse = 0;
+	pulse = dist / ONE_STEP;
+	return pulse;
+}
 
 
 /*==========================================================
@@ -356,6 +476,30 @@ void driveA(uint16_t dist){
 }
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//driveA2
+// 指定パルス分指定加速度で加速走行する
+// 引数1：accel_p 加速度, 引数2：speed_min_p 最低速度, 引数3：speed_max_p 最高速度, 引数4：dist 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void driveA2(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;										//引数の各パラメータをグローバル変数化
+
+	if(MF.FLAG.STRT == 0) speedL = speedR = 100;						//最初の加速の際だけspeedを定義
+	drive_start2();											//走行開始
+
+	//----走行----
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
+
+	drive_stop2();											//走行停止
+	MF.FLAG.STRT = 1;										//2回目以降の加速の際はspeedは既存のスピードを用いる
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //driveD
 // 指定パルス分減速走行して停止する
 // 引数1：dist …… 走行するパルス
@@ -386,6 +530,38 @@ void driveD(uint16_t dist){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//driveD2
+// 指定パルス分指定減速度で減速走行する
+// 引数1：accel_p 加速度, 引数2：speed_min_p 最低速度, 引数3：speed_max_p 最高速度, 引数4：dist 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void driveD2(int16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+
+	float speed_0 = speedL;								//直線パルス数を計算するためにTIM15より参照
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;										//引数の各パラメータをグローバル変数化
+
+	drive_start2();											//走行開始
+
+	int16_t c_pulse = dist - (speed_min*speed_min  - speed_0*speed_0)/(2*accel)/ONE_STEP;			//等速走行距離 = 総距離 - 減速に必要な距離
+
+	accel = 0;
+	if(c_pulse > 0){
+		//----等速走行----
+		while((pulse_l < c_pulse) || (pulse_r < c_pulse));	//左右のモータが等速分のパルス以上進むまで待機
+	}
+
+	accel = accel_p;
+	//----減速走行----
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
+
+	MF.FLAG.STRT = 0;
+	drive_stop2();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //driveU
 // 指定パルス分等速走行して停止する
 // 引数1：dist …… 走行するパルス
@@ -403,8 +579,28 @@ void driveU(uint16_t dist){
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//driveU2
+// 指定パルス分等速走行して停止する
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void driveU2(uint16_t dist){
+
+	accel = 0;												//等速走行のため加速度は0
+	drive_start2();											//走行開始
+
+	//----走行----
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが指定パルス以上進むまで待機
+
+	drive_stop2();											//走行停止
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //driveC
@@ -423,7 +619,28 @@ void driveC(uint16_t dist){
 	//====回転====
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが定速分のパルス以上進むまで待機
 
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//driveC2
+// 指定パルス分デフォルト速度で走行して停止する
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void driveC2(uint16_t dist){
+
+	speed_min = 150;
+	speed_max = 300;
+	accel = 0;												//150mm/sの定速走行
+
+	drive_start2();											//走行開始
+
+	//====回転====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが定速分のパルス以上進むまで待機
+
+	drive_stop2();											//走行停止
 }
 
 
@@ -438,14 +655,34 @@ void slalomU1(uint16_t dist){
 	MF.FLAG.DECL = 0;
 	MF.FLAG.DEF = 0;
 	MF.FLAG.ACCL = 0;										//加速・減速・デフォルトインターバルフラグをクリア
-	style = 1;													//直線1に入ったことを保存
+	style = 1;												//直線1に入ったことを保存
 	drive_start();											//走行開始
 
 	//====走行====
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomU12
+// スラローム直線区間1
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomU12(uint16_t dist){
+	target_flag = 0;										//ターゲットフラグの初期化
+
+	accel = 0;												//等速走行のため
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();											//走行停止
 }
 
 
@@ -456,16 +693,36 @@ void slalomU1(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR1(uint16_t dist){
-	style = 2;													//曲線1に入ったことを保存
+	style = 2;												//曲線1に入ったことを保存
 	drive_start();											//走行開始
 
-	printf("\n R1start \n\n");
 	//====走行====
-	while((pulse_l + pulse_r)*0.5 < dist);
+	while((pulse_l + pulse_r)*0.5 < dist);					//左右のモータが指定分のパルス以上進むまで待機
 
-	printf("\n R1finish \n\n");
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR12
+// スラローム回転区間1
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR12(uint16_t accel_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;										//引数をグローバル変数化
+
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r) * 0.5 < dist);				//左右のモータが指定パルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();											//走行停止
 }
 
 
@@ -476,14 +733,32 @@ void slalomR1(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR2(uint16_t dist){
-	style = 3;													//曲線2に入ったことを保存
+	style = 3;												//曲線2に入ったことを保存
 	drive_start();											//走行開始
 
 	//====走行====
-	while((pulse_l + pulse_r)*0.5 < dist);
+	while((pulse_l + pulse_r)*0.5 < dist);					//左右のモータが指定パルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR22
+// スラローム回転区間2
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR22(uint16_t dist){
+	accel = 0;												//左右輪がそれぞれ異なる速度だが、等速走行のため
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r)*0.5 < dist);					//左右のモータが指定パルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();											//走行停止
 }
 
 
@@ -494,14 +769,39 @@ void slalomR2(uint16_t dist){
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void slalomR3(uint16_t dist){
-	style = 4;													//曲線3に入ったことを保存
+	style = 4;												//曲線3に入ったことを保存
 	drive_start();											//走行開始
 
 	//====走行====
-	while((pulse_l + pulse_r)*0.5 < dist);
+	while((pulse_l + pulse_r)*0.5 < dist);					//左右のモータが指定パルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomR32
+// スラローム回転区間3
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomR32(int32_t accel_p, uint16_t target_p, uint16_t speed_min_p, uint16_t speed_max_p, uint16_t dist){
+
+	target = target_p;										//直線走行に向けた目標値
+	target_flag = 1;										//目標値に近づける走行モードの選択用
+	speed_min = speed_min_p;
+	speed_max = speed_max_p;
+	accel = accel_p;										//引数をグローバル化
+
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l + pulse_r) * 0.5 < dist);				//左右のモータが指定パルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();											//走行停止
+	target_flag = 0;										//ターゲットフラグをOFFに
 }
 
 
@@ -516,14 +816,32 @@ void slalomU2(uint16_t dist){
 	MF.FLAG.DECL = 0;
 	MF.FLAG.DEF = 0;
 	MF.FLAG.ACCL = 0;										//加速・減速・デフォルトインターバルフラグをクリア
-	style = 5;													//直線2に入ったことを保存
+	style = 5;												//直線2に入ったことを保存
 	drive_start();											//走行開始
 
 	//====走行====
 	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
 
 	//====走行終了====
-	drive_stop();
+	drive_stop();											//走行停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalomU22
+// スラローム直線区間2
+// 引数1：dist …… 走行するパルス
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalomU22(uint16_t dist){
+	accel = 0;												//等速走行のため
+	drive_start2();											//走行開始
+
+	//====走行====
+	while((pulse_l < dist) || (pulse_r < dist));			//左右のモータが減速分のパルス以上進むまで待機
+
+	//====走行終了====
+	drive_stop2();											//走行停止
 }
 
 
@@ -543,6 +861,18 @@ void half_sectionA(void){
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//half_sectionA2
+// 半区画分加速しながら走行する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void half_sectionA2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	driveA2(1000, 100, 400, PULSE_SEC_HALF);					//半区画のパルス分加速しながら走行。走行後は停止しない
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+}
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //half_sectionD
@@ -556,6 +886,17 @@ void half_sectionD(void){
 	driveD(PULSE_SEC_HALF);									//半区画のパルス分減速しながら走行。走行後は停止する
 }
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//half_sectionD2
+// 半区画分減速しながら走行し停止する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void half_sectionD2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	driveD2(-1000, 100, 400, PULSE_SEC_HALF);				//指定パルス分指定減速度で減速走行。走行後は停止する
+}
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //one_section
@@ -567,6 +908,49 @@ void one_section(void){
 
 	half_sectionA();										//半区画分加速走行
 	half_sectionD();										//半区画分減速走行のち停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//one_section2
+// 1区画分進んで停止する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void one_section2(void){
+
+	half_sectionA2();										//半区画分加速走行
+	half_sectionD2();										//半区画分減速走行のち停止
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//one_sectionA2
+// 1区画分加速する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void one_sectionA2(void){
+
+	MF.FLAG.CTRL = 1;												//制御を有効にする
+
+	driveA2(accel_hs, 400, speed_max_hs, PULSE_SEC_HALF*2);			//1区画のパルス分加速走行。走行後は停止しない
+	get_wall_info();												//壁情報を取得，片壁制御の有効・無効の判断
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//one_sectionD2
+// 1区画分減速する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void one_sectionD2(void){
+
+	MF.FLAG.CTRL = 1;												//制御を有効にする
+
+	driveD2(-1*accel_hs, 400, speed_max_hs, PULSE_SEC_HALF*2);		//1区画のパルス分減速走行。走行後は停止しない
+	get_wall_info();												//壁情報を取得，片壁制御の有効・無効の判断
 }
 
 
@@ -586,6 +970,21 @@ void one_sectionU(void){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
+//one_sectionU2
+// 等速で1区画分進む
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void one_sectionU2(void){
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	driveU2(PULSE_SEC_HALF);								//半区画のパルス分等速走行。走行後は停止しない
+	driveU2(PULSE_SEC_HALF);								//半区画のパルス分等速走行。走行後は停止しない
+	get_wall_info();										//壁情報を取得
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_R90
 // 右に90度回転する
 // 引数：なし
@@ -595,13 +994,29 @@ void rotate_R90(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
-	//drive_wait();
-	//driveC(PULSE_ROT_R90);									//デフォルトインターバルで指定パルス分回転。回転後に停止する
-	driveA(PULSE_ROT_R90*0.48);
-	driveD(PULSE_ROT_R90*0.48);
-	//drive_wait();
+	driveA(PULSE_ROT_R90*0.5);
+	driveD(PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_R902
+// 右に90度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_R902(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
+	driveA2(1000, 100, 400, PULSE_ROT_R90*0.5);
+	driveD2(-1000, 100, 400, PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも左回転処理
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_L90
@@ -613,30 +1028,60 @@ void rotate_L90(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
-	//drive_wait();
-	//driveC(PULSE_ROT_L90);									//デフォルトインターバルで指定パルス分回転。回転後に停止する
-	driveA(PULSE_ROT_L90*0.48);
-	driveD(PULSE_ROT_L90*0.48);
-	//drive_wait();
+	driveA(PULSE_ROT_L90*0.5);
+	driveD(PULSE_ROT_L90*0.5);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_L902
+// 左に90度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_L902(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_L);								//左に旋回するようモータの回転方向を設定
+	driveA2(1000, 100, 400, PULSE_ROT_R90*0.5);
+	driveD2(-1000, 100, 400, PULSE_ROT_R90*0.5);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //rotate_180
-// 180度回転する
+// 右180度回転する
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
 void rotate_180(void){
 
 	MF.FLAG.CTRL = 0;										//制御を無効にする
-	drive_set_dir(ROTATE_R);								//左に旋回するようモータの回転方向を設定
-	//drive_wait();
-	//driveC(PULSE_ROT_180);									//デフォルトインターバルで指定パルス分回転。回転後に停止する
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
 	driveA(PULSE_ROT_R90);
 	driveD(PULSE_ROT_R90);
-	//drive_wait();
+	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//rotate_1802
+// 右180度回転する
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void rotate_1802(void){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(ROTATE_R);								//右に旋回するようモータの回転方向を設定
+	driveA2(1000, 100, 400, PULSE_ROT_R90);
+	driveD2(-1000, 100, 400, PULSE_ROT_R90);
+	turn_dir(DIR_TURN_180);									//マイクロマウス内部位置情報でも180度回転処理
 	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
 }
 
@@ -651,14 +1096,16 @@ void slalom_R90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
+
+	t_cnt_l = t_cnt_r = str_t_cnt+50;
 
 	turn = 1;												//右回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU1(SLALOM_U1);
+	slalomU1(SLALOM_U1-10);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	slalomR1(SLALOM_R1);
-	slalomR2(SLALOM_R2);
+	slalomR2(SLALOM_R2+18);
 	slalomR3(SLALOM_R3);
 	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
@@ -666,7 +1113,51 @@ void slalom_R90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_R902
+// スラローム右旋回
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_R902(void){
+
+/*	style = 1;
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU12(SLALOM_U12);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU22(SLALOM_U22);
+
+	style = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+*/
+	style = 1;
+	//MF.FLAG.SLLM = 1;										//制御を有効にする
+
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU12(SLALOM_U12);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
+	turn_dir(DIR_TURN_R90);									//マイクロマウス内部位置情報でも右回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU22(SLALOM_U22);
+
+	style = 0;
+	//MF.FLAG.SLLM = 0;										//制御を有効にする
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
@@ -682,25 +1173,54 @@ void slalom_L90(void){
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 1;
+	MF.FLAG.SLLM = 1;
+
+	t_cnt_l = t_cnt_r = str_t_cnt;
 
 	turn = 2;												//左回転を保存する
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU1(SLALOM_U1);
+	slalomU1(SLALOM_U1-5);
 	MF.FLAG.CTRL = 0;										//制御を無効にする
 	slalomR1(SLALOM_R1);
-	slalomR2(SLALOM_R2);//-7
+	slalomR2(SLALOM_R2+14);
 	slalomR3(SLALOM_R3);
 	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも左回転処理
 	MF.FLAG.CTRL = 1;										//制御を有効にする
-	slalomU2(SLALOM_U2);//+1
+	slalomU2(SLALOM_U2);
 
 	turn = 0;
 	style = 0;
-	MF.FLAG.SRRM = 0;
+	MF.FLAG.SLLM = 0;
 	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
 
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_L902
+// スラローム左旋回
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_L902(void){
+
+	style = 2;
+
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU12(SLALOM_U12);
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	slalomR12(8000, 100, 700, SLALOM_R12);
+	slalomR22(SLALOM_R22);
+	slalomR32(-8000, 400, 100, 700, SLALOM_R32);
+	turn_dir(DIR_TURN_L90);									//マイクロマウス内部位置情報でも右回転処理
+	MF.FLAG.CTRL = 1;										//制御を有効にする
+	slalomU22(SLALOM_U22);
+
+	style = 0;
+	get_wall_info();										//壁情報を取得，片壁制御の有効・無効の判断
+
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //set_position
@@ -726,19 +1246,82 @@ void set_position(uint8_t sw){
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
-//test_run
-// テスト走行モード
+//set_position2
+// 機体の尻を壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_position2(uint8_t sw){
+
+	MF.FLAG.CTRL = 0;										//制御を無効にする
+	drive_set_dir(BACK);									//後退するようモータの回転方向を設定
+	drive_wait();
+	driveC2(PULSE_SETPOS_BACK);								//尻を当てる程度に後退。回転後に停止する
+	drive_wait();
+	if(sw){
+		get_base();
+	}
+	drive_set_dir(FORWARD);									//前進するようにモータの回転方向を設定
+	drive_wait();
+	driveC2(PULSE_SETPOS_SET);								//デフォルトインターバルで指定パルス分回転。回転後に停止する
+	drive_wait();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//set_positionX
+// 機体の尻を左と背後の壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_positionX(uint8_t sw){
+
+	rotate_R90();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+	rotate_L90();
+	drive_wait();
+	set_position(sw);
+	drive_wait();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//set_positionX2
+// 機体の尻を左と背後の壁に当てて場所を区画中央に合わせる
+// 引数：sw …… 0以外ならget_base()する
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void set_positionX2(uint8_t sw){
+
+	rotate_R902();
+	drive_wait();
+	set_position2(sw);
+	drive_wait();
+	rotate_L902();
+	drive_wait();
+	set_position2(sw);
+	drive_wait();
+}
+
+
+/*----------------------------------------------------------
+		テスト関数
+----------------------------------------------------------*/
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//defo_test
+// 初期状態でのtableによるテスト走行
 // 引数：なし
 // 戻り値：なし
 //+++++++++++++++++++++++++++++++++++++++++++++++
-void test_run(void){
+void defo_test(void){
 
 	int mode = 0;
 	printf("Test Run, Mode : %d\n", mode);
 	drive_enable_motor();
 
 	while(1){
-
 		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
@@ -758,24 +1341,22 @@ void test_run(void){
 			}
 			printf("Test Run, Mode : %d\n", mode);
 		}
-
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
 			int i = 0;
 			switch(mode){
-
 				case 0:
 					//----尻当て----
 					printf("Set Position.\n");
 					set_position(0);
 					break;
 				case 1:
-					//----6区画等速走行----
-					printf("6 Section, Forward, Constant Speed.\n");
+					//----4区画等速走行----
+					printf("4 Section, Forward, Constant Speed.\n");
 					MF.FLAG.CTRL = 0;				//制御を無効にする
 					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					for(i = 0; i < 6; i++){
+					for(i = 0; i < 4; i++){
 						driveC(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
 						drive_wait();
 					}
@@ -802,26 +1383,629 @@ void test_run(void){
 					}
 					break;
 				case 5:
+					//----4区画連続走行----
+					printf("4 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 4-1; i++){
+						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
+					}
+					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 				case 6:
 					break;
 				case 7:
-					//----6区画連続走行----
-					printf("6 Section, Forward, Continuous.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					driveA(PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
-					for(i = 0; i < 6-1; i++){
-						driveU(PULSE_SEC_HALF*2);	//一区画のパルス分等速走行
-					}
-					driveD(PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
 					break;
 			}
 		}
 	}
 	drive_disable_motor();
-
 }
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//physic_test_
+// 物理量ベースによるテスト走行
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void physic_test(void){
+
+	int mode = 0;
+	printf("Test Run2, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Run2, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Run2, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i = 0;
+			switch(mode){
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_positionX2(0);
+					break;
+
+				case 1:
+					//----4区画等速走行----
+					printf("4 Section, Forward, Constant Speed.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					for(i = 0; i < 4; i++){
+						driveC2(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
+						drive_wait();
+					}
+					break;
+
+				case 2:
+					//----右90度回転----
+					printf("Rotate R90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_R902();				//16回右90度回転、つまり4周回転
+					}
+					break;
+
+				case 3:
+					//----左90度回転----
+					printf("Rotate L90.\n");
+					for(i = 0; i < 16; i++){
+						rotate_L902();				//16回左90度回転、つまり4周回転
+					}
+					break;
+
+				case 4:
+					//----180度回転----
+					printf("Rotate 180.\n");
+					for(i = 0; i < 8; i++){
+						rotate_1802();				//8回右180度回転、つまり4周回転
+					}
+					break;
+
+				case 5:
+					//----4区画連続走行----
+					printf("4 Section, Forward, Continuous.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
+					break;
+
+				case 6:
+					break;
+
+				case 7:
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//accel_test
+// 既知区間加速によるテスト走行
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void accel_test(void){
+
+	int mode = 0;
+	printf("Test Run3, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Run3, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Run3, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			switch(mode){
+
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_positionX2(0);
+					break;
+
+				case 1:
+					//----2区画加減速走行----
+					printf("4 Section, Forward, Accel & Deccel Speed.\n");
+					half_sectionA2();
+					half_sectionA2();
+					half_sectionD2();
+					half_sectionD2();
+					break;
+
+				case 2:
+					//----1区画加減速走行----
+					printf("1 Section, Forward, Accel & Deccel Speed.\n");
+					half_sectionA2();
+					half_sectionD2();
+					break;
+
+				case 3:
+					//----2区画加減速走行----
+					printf("2 Section, Forward, Accel & Deccel Speed.\n");
+					driveA2(800, 100, 400, PULSE_SEC_HALF*2);					//半区画のパルス分加速しながら走行。走行後は停止しない
+					driveD2(-800, 100, 600, PULSE_SEC_HALF*2);				//指定パルス分指定減速度で減速走行。走行後は停止する
+					break;
+
+				case 4:
+					break;
+
+				case 5:
+					break;
+
+				case 6:
+					break;
+
+				case 7:
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//slalom_test
+// テスト走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void slalom_test(void){
+
+	int mode = 0;
+	printf("Slalom Test, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Slalom Test, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Slalom Test, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i = 0;
+			switch(mode){
+
+				case 0:
+					break;
+
+				case 1:
+					//----右90度スラローム回転2*16----
+					printf("Slalom R90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 16; i++){
+						half_sectionA2();
+						slalom_R90();				//16回右回転、つまり4周回転
+						half_sectionD2();
+					}
+					break;
+
+				case 2:
+					//----左90度スラローム回転2*16----
+					printf("Slalom L90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 16; i++){
+						half_sectionA2();
+						slalom_L90();				//16回左回転、つまり4周回転
+						half_sectionD2();
+					}
+					break;
+
+				case 3:
+					//----右90度スラローム回転2----
+					printf("Slalom R90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 1; i++){
+						half_sectionA2();
+						slalom_R90();				//1回右回転、つまり1/4周回転
+						half_sectionD2();
+					}
+					break;
+
+				case 4:
+					//----左90度スラローム回転2----
+					printf("Slalom L90.\n");
+					MF.FLAG.SCND = 0;
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 1; i++){
+						half_sectionA2();
+						slalom_L90();				//1回左回転、つまり1/4周回転
+						half_sectionD2();
+					}
+					break;
+
+				case 5:
+					//----右90度スラローム回転----
+					printf("Slalom R90.\n");
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 1; i++){
+						half_sectionA();
+						slalom_R90();				//1回右回転、つまり1/4周回転
+						half_sectionD();
+					}
+					break;
+
+				case 6:
+					//----左90度スラローム回転----
+					printf("Slalom L90.\n");
+					get_base();
+					ms_wait(500);
+					for(i = 0; i < 1; i++){
+						half_sectionA();
+						slalom_L90();				//1回左回転、つまり1/4周回転
+						half_sectionD();
+					}
+					break;
+
+				case 7:
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//test_select
+// テスト走行選択関数
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void test_select(void){
+
+	int mode = 0;
+	printf("Test Select, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Test Select, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Test Select, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			switch(mode){
+
+				case 0:
+					break;
+
+				case 1:
+					//----デフォルトテスト走行----
+					printf("Defo Test Run.\n");
+					defo_test();
+					break;
+
+				case 2:
+					//----物理量テスト走行----
+					printf("Physic Test Run.\n");
+					physic_test();
+					break;
+
+				case 3:
+					//----既知区間加速テスト走行----
+					printf("Accel Test Run.\n");
+					accel_test();
+					break;
+
+				case 4:
+					//----スラロームテスト走行----
+					printf("Slalom Test Run.\n");
+					slalom_test();
+					break;
+
+				case 5:
+					break;
+
+				case 6:
+					break;
+
+				case 7:
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+/*----------------------------------------------------------
+		走行モード選択関数
+----------------------------------------------------------*/
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//simple_run
+// 超新地走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void simple_run(void){
+
+	int mode = 0;
+	printf("Simple Run, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Simple Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Simple Run, Mode : %d\n", mode);
+		}
+
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			switch(mode){
+
+				case 0:
+					//----尻当て----
+					printf("Set Position.\n");
+					set_positionX(0);
+					break;
+				case 1:
+					//----一次探索走行----
+					printf("First Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX(0);
+					get_base();
+
+					searchA();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchA();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 2:
+					//----一次探索連続走行----
+					printf("First Run. (Continuous)\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX(0);
+					get_base();
+
+					searchB();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 3:
+					//----二次探索走行----
+					printf("Second Run. (Continuous)\n");
+
+					MF.FLAG.SCND = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX(0);
+					get_base();
+
+					searchB();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 4:
+					//----一次探索走行2----
+					printf("First Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchA2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchA2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 5:
+					//----一次探索連続走行2----
+					printf("First Run. (Continuous)\n");
+
+					MF.FLAG.SCND = 0;
+					MF.FLAG.ACCL2 = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+
+					get_base();
+
+					searchB2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 6:
+					//----二次探索走行2----
+					printf("Second Run. (Continuous)\n");
+
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchB2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+
+				case 7:
+					//----一次探索走行+全面探索----
+					printf("First Run + All Map.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX(0);
+					get_base();
+
+					searchA2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchD();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //slalom_run
@@ -836,7 +2020,6 @@ void slalom_run(void){
 	drive_enable_motor();
 
 	while(1){
-
 		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
 		if( is_sw_pushed(PIN_SW_INC) ){
 			ms_wait(100);
@@ -856,55 +2039,33 @@ void slalom_run(void){
 			}
 			printf("Slalom Run, Mode : %d\n", mode);
 		}
-
 		if( is_sw_pushed(PIN_SW_RET) ){
 			ms_wait(100);
 			while( is_sw_pushed(PIN_SW_RET) );
-			int j = 0;
 			switch(mode){
-
 				case 0:
 					//セットポジション用
 					printf("Set Position.\n");
-					//drive_enable_motor();
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					break;
 
 				case 1:
 					//----一次探索スラローム走行----
 					printf("First Run. (Slalom)\n");
-					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX2(0);
+					get_base();
 
-					get_base();		//Original
-
-					searchC();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -914,29 +2075,20 @@ void slalom_run(void){
 				case 2:
 					//---二次探索スラローム走行----
 					printf("Second Run. (Slalom)\n");
-					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					//MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 1;
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX2(0);
+					get_base();
 
-					get_base();		//Original
-
-					searchC();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC();
+					searchC2();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;
@@ -944,77 +2096,328 @@ void slalom_run(void){
 					break;
 
 				case 3:
-					//----右90度スラローム回転*16----
-					printf("Slalom R90.\n");
-					MF.FLAG.SCND = 0;
-					get_base();		//Original
+					//----二次探索スラローム走行+既知区間加速----
+					printf("Second Run. (Slalom+accel)\n");
 
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 600;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
 					ms_wait(500);
-					for(j = 0; j < 16; j++){
-						half_sectionA();
-						slalom_R90();				//16回右回転、つまり4周回転
-						half_sectionD();
 
-					}
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
 
 					break;
 
 				case 4:
-					//----左90度スラローム回転*16----
-					printf("Slalom L90.\n");
-					MF.FLAG.SCND = 0;
-					get_base();		//Original
+					//----二次探索スラローム走行+既知区間加速----
+					printf("Second Run. (Slalom+accel)\n");
 
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 1000;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
 					ms_wait(500);
-					for(j = 0; j < 16; j++){
-						half_sectionA();
-						slalom_L90();				//16回左回転、つまり4周回転
-						half_sectionD();
 
-					}
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
 
 					break;
 
 				case 5:
-					//----右90度スラローム回転----
-					printf("Slalom R90.\n");
-					MF.FLAG.SCND = 0;
-					get_base();		//Original
-
-					ms_wait(500);
-					for(j = 0; j < 1; j++){
-						half_sectionA();
-						slalom_R90();				//1回右回転、つまり1/4周回転
-						half_sectionD();
-
-					}
-
 					break;
 
 				case 6:
-					//----左90度スラローム回転----
-					printf("Slalom L90.\n");
-					MF.FLAG.SCND = 0;
-					get_base();		//Original
-
-					ms_wait(500);
-					for(j = 0; j < 1; j++){
-						half_sectionA();
-						slalom_L90();				//1回左回転、つまり1/4周回転
-						half_sectionD();
-
-					}
-
 					break;
 
 				case 7:
+					break;
 
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//sample_course_run
+// サンプルコース走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void sample_course_run(void){
+
+	int mode = 0;
+	printf("Sample Course Run, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Sample Course Run, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Sample Course Run, Mode : %d\n", mode);
+		}
+
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			int i = 0;
+			switch(mode){
+
+			case 0:
+					get_base();
+				break;
+
+				case 1:
+					//----サンプルコース1走行　4*4連続超新地走行----
+					printf("Sample course1 Run.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					one_sectionU2();			//一区画のパルス分等速走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_R902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					rotate_L902();
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
+					break;
+				case 2:
+					//----サンプルコース1走行　4*4連続スラローム走行----
+					printf("Sample course1 Run.\n");
+					MF.FLAG.CTRL = 0;				//制御を無効にする
+					get_base();
+					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					slalom_R90();
+					one_sectionU2();			//一区画のパルス分等速走行
+					slalom_R90();
+					slalom_R90();
+					slalom_L90();
+					slalom_L90();
+					slalom_R90();
+					slalom_L90();
+					slalom_L90();
+					for(i = 0; i < 3-1; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					break;
+				case 3:
+					//電通大プチコン用サーキットコース
+					get_base();
+					accel_hs = 3000;
+					speed_max_hs = 1100;
+
+					set_positionX2(0);
+
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+					break;
+				case 4:
+					//電通大プチコン用サーキットコース
+					accel_hs = 3500;
+					speed_max_hs = 1200;
+
+					set_positionX2(0);
+
+					driveA2(400, 50, 400, PULSE_SEC_HALF);			//半区画のパルス分加速しながら走行
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 12; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					one_sectionA2();
+					for(i = 0; i < 4; i++){
+						one_sectionU2();			//一区画のパルス分等速走行
+					}
+					one_sectionD2();
+					slalom_R90();
+
+					driveD2(-400, 50, 500, PULSE_SEC_HALF);			//半区画のパルス分減速しながら走行。走行後は停止する
+
+					break;
+				case 5:
+					break;
+				case 6:
+					break;
+				case 7:
 					break;
 			}
 		}
 	}
 	drive_disable_motor();
 }
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //perfect_run
@@ -1058,84 +2461,32 @@ void perfect_run(void){
 				case 0:
 					//セットポジション用
 					printf("Set Position.\n");
-					//drive_enable_motor();
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
+					set_positionX(0);
 					break;
 
 				case 1:
-					//----一次探索走行----
-					printf("First Run.\n");
-					drive_enable_motor();
+					//----一次探索連続走行----
+					printf("First Run. (Continuous)\n");
 
 					MF.FLAG.SCND = 0;
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX(0);
+					get_base();
 
-					get_base();		//Original
-
-					searchA();
+					searchB();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchA();
+					searchB();
 
 					goal_x = 7;
 					goal_y = 7;
 
-					drive_disable_motor();
 					break;
 
 				case 2:
-					//----一次探索連続走行----
-					printf("First Run. (Continuous)\n");
-					drive_enable_motor();
-
-					MF.FLAG.SCND = 0;
-					goal_x = 7;
-					goal_y = 7;
-
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
-					get_base();		//Original
-
-					searchB();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchB();
-
-					goal_x = 7;
-					goal_y = 7;
-
-					drive_disable_motor();
-					break;
-
-				case 3:
 					//----二次探索走行----
 					printf("Second Run. (Continuous)\n");
 					drive_enable_motor();
@@ -1144,16 +2495,8 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-
-					get_base();		//Original
+					set_positionX(0);
+					get_base();
 
 					searchB();
 					ms_wait(500);
@@ -1164,30 +2507,42 @@ void perfect_run(void){
 					goal_x = 7;
 					goal_y = 7;
 
-					drive_disable_motor();
 					break;
 
-
-				case 4:
+				case 3:
 					//----一次探索スラローム走行----
 					printf("First Run. (Slalom)\n");
-					//drive_enable_motor();
 
-					MF.FLAG.SRRM = 1;
+					MF.FLAG.SLLM = 1;
 					MF.FLAG.SCND = 0;
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX(0);
+					get_base();
 
-					get_base();		//Original
+					searchC();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC();
+
+					goal_x = 7;
+					goal_y = 7;
+
+					break;
+
+				case 4:
+					//---二次探索スラローム走行----
+					printf("Second Run. (Slalom)\n");
+
+					MF.FLAG.SLLM = 1;
+					MF.FLAG.SCND = 1;
+					goal_x = 7;
+					goal_y = 7;
+
+					set_positionX(0);
+					get_base();
 
 					searchC();
 					ms_wait(500);
@@ -1201,35 +2556,173 @@ void perfect_run(void){
 					break;
 
 				case 5:
-					//---二次探索スラローム走行----
-					printf("Second Run. (Slalom)\n");
-					//drive_enable_motor();
+					break;
 
-					MF.FLAG.SRRM = 1;
-					MF.FLAG.SCND = 1;
+				case 6:
+					break;
+				case 7:
+					perfect_slalom();
+					break;
+			}
+		}
+	}
+	drive_disable_motor();
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//perfect_slalom
+// 本番用走行モード
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void perfect_slalom(void){
+
+	int mode = 0;
+	printf("Perfect Slalom, Mode : %d\n", mode);
+	drive_enable_motor();
+
+	while(1){
+		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
+		if( is_sw_pushed(PIN_SW_INC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_INC) );
+			mode++;
+			if(mode > 7){
+				mode = 0;
+			}
+			printf("Perfect Slalom, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_DEC) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_DEC) );
+			mode--;
+			if(mode < 0){
+				mode = 7;
+			}
+			printf("Perfect Slalom, Mode : %d\n", mode);
+		}
+		if( is_sw_pushed(PIN_SW_RET) ){
+			ms_wait(100);
+			while( is_sw_pushed(PIN_SW_RET) );
+			switch(mode){
+				case 0:
+					//セットポジション用
+					printf("Set Position.\n");
+					set_positionX(0);
+					break;
+
+				case 1:
+					//----一次探索スラローム走行----
+					printf("First Run.\n");
+					MF.FLAG.SCND = 0;
+					MF.FLAG.ACCL2 = 0;
 					goal_x = 7;
 					goal_y = 7;
 
-					rotate_R90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
-					rotate_L90();
-					drive_wait();
-					set_position(0);
-					drive_wait();
+					set_positionX2(0);
+					get_base();
 
-					get_base();		//Original
-
-					searchC();
+					searchC2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC();
+					searchC2();
 
 					goal_x = 7;
 					goal_y = 7;
+					break;
 
+				case 2:
+					//----二次探索スラローム+既知区間加速走行 speed1----
+					printf("First Run. (Continuous)\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 600;
+					goal_x = 7;
+					goal_y = 7;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = 7;
+					goal_y = 7;
+					break;
+
+				case 3:
+					//----二次探索スラローム+既知区間加速走行 speed2----
+					printf("Second Run. (Continuous)\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 800;
+					goal_x = 7;
+					goal_y = 7;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = 7;
+					goal_y = 7;
+					break;
+
+				case 4:
+					//----二次探索スラローム+既知区間加速走行 speed3----
+					printf("First Run. (Slalom)\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 1000;
+					goal_x = 7;
+					goal_y = 7;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = 7;
+					goal_y = 7;
+					break;
+
+				case 5:
+					//----二次探索スラローム+既知区間加速走行 speed4----
+					printf("Second Run. (Slalom)\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;
+					accel_hs = 3000;
+					speed_max_hs = 1100;
+					goal_x = 7;
+					goal_y = 7;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchC2();
+
+					goal_x = 7;
+					goal_y = 7;
 					break;
 
 				case 6:

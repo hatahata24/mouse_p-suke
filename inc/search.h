@@ -53,19 +53,43 @@ struct coordinate_and_direction{
 #ifdef MAIN_C_											//main.cからこのファイルが呼ばれている場合
 	/*グローバル変数の定義*/
 	uint8_t map[16][16];								//マップ格納配列
-	uint8_t smap[16][16];								//歩数マップ格納配列
+	//uint8_t smap[16][16];								//歩数マップ格納配列
+	uint16_t smap[16][16];								//歩数マップ格納配列
 	uint8_t wall_info;									//壁情報格納変数
 	uint8_t goal_x, goal_y;								//ゴール座標
 	uint8_t route[256];									//最短経路格納配列
 	uint8_t r_cnt;										//経路カウンタ
-#else													//main.c以外からこのファイルが呼ばれている場合
+
+	uint8_t H_accel_flag;								//既知区間加速用フラグ
+	uint8_t run_dir;									//優先走行方向選択
+	uint8_t m_step;										//歩数格納
+	uint8_t m_step2;									//仮goalまでの歩数格納
+	uint8_t pregoal_x, pregoal_y;						//仮goal座標
+	uint8_t allmap_flag;								//全マップ探索完了のフラグ
+	#else												//main.c以外からこのファイルが呼ばれている場合
 	/*グローバル変数の宣言*/
 	extern uint8_t map[16][16];							//マップ格納配列
-	extern uint8_t smap[16][16];						//歩数マップ格納配列
+<<<<<<< HEAD
+	//extern uint8_t smap[16][16];						//歩数マップ格納配列
+=======
+>>>>>>> 3b30565f2f63dd7ece664ff8ddc57d0c2ae06e8f
+	extern uint16_t smap[16][16];						//歩数マップ格納配列
 	extern uint8_t wall_info;							//壁情報格納変数
 	extern uint8_t goal_x, goal_y;						//ゴール座標
 	extern uint8_t route[256];							//最短経路格納配列
 	extern uint8_t r_cnt;								//経路カウンタ
+
+<<<<<<< HEAD
+	extern uint8_t H_accel_flag;
+	extern uint8_t run_dir;
+=======
+	extern uint8_t H_accel_flag;						//既知区間加速用フラグ
+	extern uint8_t run_dir;								//優先走行方向選択
+	extern uint8_t m_step;								//歩数格納
+	extern uint8_t m_step2;								//仮goalまでの歩数格納
+	extern uint8_t pregoal_x, pregoal_y;				//仮goal座標
+	extern uint8_t allmap_flag;								//全マップ探索完了のフラグ
+>>>>>>> 3b30565f2f63dd7ece664ff8ddc57d0c2ae06e8f
 #endif
 
 
@@ -77,8 +101,12 @@ struct coordinate_and_direction{
 void search_init(void);
 
 void searchA();											//1区画停止型探索走行
+void searchA2();										//1区画停止型探索走行
 void searchB();											//連続探索走行
+void searchB2();										//連続探索走行
 void searchC();											//スラローム探索走行
+void searchC2();										//スラローム探索走行
+void searchD();											//全面探索走行
 
 void adv_pos();											//マウスの位置情報を前進
 void conf_route();										//次ルートの確認
@@ -87,6 +115,8 @@ void write_map();										//マップ書き込み
 void turn_dir(uint8_t);									//自機方向情報変更
 void make_smap();										//歩数マップ作成
 void make_route();										//最短経路検索
+void find_pregoal();									//仮goalの座標を探す
+void make_smap2();										//仮goalからの歩数マップ作成
 
 void store_map_in_eeprom(void);
 void load_map_from_eeprom(void);

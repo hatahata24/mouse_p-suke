@@ -87,7 +87,7 @@ void sensor_init(void){
 	----------------------------*/
 	pin_set_analog_mode(PIN_VOLTAGE_CHECK);		//PB1 : ADC1_CH12
 
-	pin_set_analog_mode(PIN_SENSOR_FR);			//PA1 : ADC1_CH2
+	pin_set_analog_mode(PIN_SENSOR_FR);			//PA0 : ADC1_CH2
 	pin_set_analog_mode(PIN_SENSOR_R);			//PA2 : ADC1_CH3
 	pin_set_analog_mode(PIN_SENSOR_L);			//PA5 : ADC2_CH2
 	pin_set_analog_mode(PIN_SENSOR_FL);			//PA7 : ADC2_CH4
@@ -185,16 +185,42 @@ void TIM6_DAC1_IRQHandler(void){
 				dif_l = (int32_t) ad_l - base_l;
 				dif_r = (int32_t) ad_r - base_r;
 
-				if(CTRL_BASE_L < dif_l){				//制御の判断
-					dl_tmp += CTRL_CONT * dif_l;		//比例制御値を決定
-					dr_tmp += -1 * CTRL_CONT * dif_l;	//比例制御値を決定
+				//壁制御の判断と制御値の算出
+				if(CTRL_BASE_L < dif_l){
+					if(H_accel_flag == 1){							//既知区間加速の時
+						dl_tmp += CTRL_CONT*0.3 * dif_l;		//比例制御値を決定
+						dr_tmp += -1 * CTRL_CONT*0.3 * dif_l;	//比例制御値を決定
+					}else{
+						dl_tmp += CTRL_CONT * dif_l;			//比例制御値を決定
+						dr_tmp += -1 * CTRL_CONT * dif_l;		//比例制御値を決定
+					}
+				}else if(CTRL_BASE_R < dif_r){
+					if(H_accel_flag == 1){							//既知区間加速の時
+						dl_tmp += -1 * CTRL_CONT*0.3 * dif_r;	//比例制御値を決定
+						dr_tmp += CTRL_CONT*0.3 * dif_r;		//比例制御値を決定
+					}else{
+						dl_tmp += -1 * CTRL_CONT * dif_r;		//比例制御値を決定
+						dr_tmp += CTRL_CONT * dif_r;			//比例制御値を決定
+					}
 				}
-				if(CTRL_BASE_R < dif_r){
-					dl_tmp += -1 * CTRL_CONT * dif_r;	//比例制御値を決定
-					dr_tmp += CTRL_CONT * dif_r;		//比例制御値を決定
+/*				//前壁制御の判断と制御値の算出
+				if(CTRL_BASE_FL < ad_fl){						//左前壁
+					dl_tmp -= CTRL_F_CONT * (ad_fl - CTRL_BASE_FL);
 				}
-
-				//一次保存した制御比例値をdlとdrに反映させる
+				if(CTRL_BASE_FR < ad_fr){						//右前壁
+					dr_tmp -= CTRL_F_CONT * (ad_fr - CTRL_BASE_FR);
+				}
+*/				//片壁制御の判断と制御値の算出
+/*				if(CTRL_1WALL_L > dif_l){
+					dl_tmp += -1 * CTRL_1WALL_CONT * dif_r;		//左壁なし、右壁のみの片壁制御
+					dr_tmp += CTRL_1WALL_CONT * dif_r;			//左壁なし、右壁のみの片壁制御
+				}
+				if(CTRL_1WALL_R > dif_r){
+					dl_tmp += CTRL_1WALL_CONT * dif_l;			//右壁なし、左壁のみの片壁制御
+					dr_tmp += -1 * CTRL_1WALL_CONT * dif_l;		//右壁なし、左壁のみの片壁制御
+				}
+*/
+				//一次保存した比例制御値をdlとdrに反映させる
 				dl = max(min(CTRL_MAX, dl_tmp), -1 * CTRL_MAX);
 				dr = max(min(CTRL_MAX, dr_tmp), -1 * CTRL_MAX);
 			}else{
@@ -209,7 +235,6 @@ void TIM6_DAC1_IRQHandler(void){
 
 	TIM6->SR &= ~TIM_SR_UIF;
 }
-
 
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
@@ -234,7 +259,6 @@ int get_adc_value(int ch){
 }
 
 
-
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //get_base
 // 制御用の基準値を取得する
@@ -249,7 +273,6 @@ uint8_t get_base(){
 	base_r = ad_r;										//現在の右側のセンサ値で決定
 
 	return res;											//理想的な値を取得できたかを返す
-
 }
 
 
@@ -278,7 +301,6 @@ void get_wall_info(){
 		//AD値が閾値より大きい（=壁があって光が跳ね返ってきている）場合
 		wall_info |= 0x11;								//壁情報を更新
 	}
-
 }
 
 
