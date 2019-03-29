@@ -142,15 +142,12 @@ int main(void){
 					break;
 
 				case 3:
-					//----テスト走行----
-					printf("Test Run.\n");
-					test_run();
 					break;
 
 				case 4:
-					//----テスト走行2----
-					printf("Test Run2.\n");
-					test_run2();
+					//----テスト走行----
+					printf("Test Run.\n");
+					test_select();
 					break;
 
 				case 5:
@@ -166,9 +163,8 @@ int main(void){
 					break;
 
 				case 6:
-					//----テスト走行3----
-					printf("Test Run3.\n");
-					//test_run3();
+					//----サンプルコース走行----
+					printf("Sample Course Run.\n");
 					sample_course_run();
 					break;
 
@@ -179,7 +175,6 @@ int main(void){
 					break;
 			}
 		}
-
 		ms_wait(100);
 	}
 }
