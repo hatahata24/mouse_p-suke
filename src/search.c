@@ -499,13 +499,17 @@ void searchD(){
 	if(MF.FLAG.SCND){
 		load_map_from_eeprom();
 	}
-	int i, j = 0;
+	int i = 0;
+	int j = 0;
 
 	do {
 		//====歩数等初期化====
 		m_step = r_cnt = 0;															//歩数と経路カウンタの初期化
 		find_pregoal();																	//仮goalまでの歩数マップの初期化
-		if (allmap_comp_flag) break;
+		if (allmap_comp_flag) {
+			printf("get allmap_comp_flag\n");
+			break;
+		}
 		make_smap2();
 		make_route();																	//最短経路探索(route配列に動作が格納される)
 		//====探索走行====
@@ -541,6 +545,7 @@ void searchD(){
 			if (j > 150) break;										//移動マス数が150以上になった場合全面探索を中止
 
 		} while ((mouse.x != pregoal_x) || (mouse.y != pregoal_y));		//現在座標と仮goal座標が等しくなるまで実行
+		printf("get pregoal, x = %d, y = %d\n", mouse.x, mouse.y);
 
 		get_wall_info();																	//壁情報の初期化, 後壁はなくなる
 		write_map();																		//地図の初期化
@@ -550,6 +555,7 @@ void searchD(){
 			break;											//移動マス数が150以上になった場合全面探索を中止
 		}
 		i++;
+		printf("i = %d\n", i);
 
 	} while (i < 130);
 	printf("i = %d\n", i);

@@ -1860,7 +1860,7 @@ void search_test(void){
 					set_positionX2(0);
 					get_base();
 
-					searchA2();
+					searchB2();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
