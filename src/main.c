@@ -130,7 +130,7 @@ int main(void){
 
 				case 1:
 					//----超新地走行----
-					printf("Test Run.\n");
+					printf("Simple Run.\n");
 					simple_run();
 					break;
 

@@ -1760,35 +1760,95 @@ void search_test(void){
 					set_position(0);
 					break;
 				case 1:
-					//----4区画等速走行----
-					printf("4 Section, Forward, Constant Speed.\n");
-					MF.FLAG.CTRL = 0;				//制御を無効にする
-					drive_set_dir(FORWARD);			//前進するようにモータの回転方向を設定
-					for(i = 0; i < 4; i++){
-						driveC(PULSE_SEC_HALF*2);	//一区画のパルス分デフォルトインターバルで走行
-						drive_wait();
-					}
+					//----直線優先走行をするための1次走行----
+					printf("First Run to Straight Priority Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchA2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchA2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 2:
-					//----右90度回転----
-					printf("Rotate R90.\n");
-					for(i = 0; i < 16; i++){
-						rotate_R90();				//16回右90度回転、つまり4周回転
-					}
+					//----非直線優先走行----
+					printf("Second, Non Straight Priority Run.\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 0;
+					MF.FLAG.STRAIGHT= 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchB2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 3:
-					//----左90度回転----
-					printf("Rotate L90.\n");
-					for(i = 0; i < 16; i++){
-						rotate_L90();				//16回左90度回転、つまり4周回転
-					}
+					//----直線優先走行----
+					printf("Second, Straight Priority Run.\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 0;
+					MF.FLAG.STRAIGHT= 1;						//直線優先フラグON
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchB2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 4:
-					//----180度回転----
-					printf("Rotate 180.\n");
-					for(i = 0; i < 8; i++){
-						rotate_180();				//8回右180度回転、つまり4周回転
-					}
+					//----直線優先走行+既知区間加速----
+					printf("Second, Straight Priority Run + Accel.\n");
+					MF.FLAG.SCND = 1;
+					MF.FLAG.ACCL2 = 1;							//既知区間加速フラグON
+					MF.FLAG.STRAIGHT= 1;						//直線優先フラグON
+
+					accel_hs = 3000;
+					speed_max_hs = 600;
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchB2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchB2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 5:
 					//----4区画連続走行----
@@ -1822,7 +1882,7 @@ void test_select(void){
 
 	int mode = 0;
 	printf("Test Select, Mode : %d\n", mode);
-	drive_enable_motor();
+	//drive_enable_motor();
 
 	while(1){
 		led_write(mode & 0b001, mode & 0b010, mode & 0b100);
@@ -1890,7 +1950,7 @@ void test_select(void){
 			}
 		}
 	}
-	drive_disable_motor();
+	//drive_disable_motor();
 }
 
 
