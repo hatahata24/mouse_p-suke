@@ -166,6 +166,7 @@ int main(void){
 					//----テスト走行3----
 					printf("Sample Course Run.\n");
 					sample_course_run();
+
 					break;
 
 				case 7:
