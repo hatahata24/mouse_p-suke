@@ -142,15 +142,12 @@ int main(void){
 					break;
 
 				case 3:
-					//----デフォルトテスト走行----
-					printf("Defo Test Run.\n");
-					defo_test();
 					break;
 
 				case 4:
-					//----物理量テスト走行----
-					printf("Physic Test Run.\n");
-					physic_test();
+					//----テスト走行選択----
+					printf("Test Select.\n");
+					test_select();
 					break;
 
 				case 5:
@@ -167,8 +164,7 @@ int main(void){
 
 				case 6:
 					//----テスト走行3----
-					printf("Accel Test Run.\n");
-					//accel_test();
+					printf("Sample Course Run.\n");
 					sample_course_run();
 					break;
 
