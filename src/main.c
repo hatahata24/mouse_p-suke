@@ -82,7 +82,6 @@ int main(void){
 	ms_wait(12);	// 12*8 = 96 ms
 
 	sysclk_init();
-
 	gpio_init();
 	uart_init(9600);
 
