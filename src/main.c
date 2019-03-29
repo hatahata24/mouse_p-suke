@@ -176,6 +176,7 @@ int main(void){
 					break;
 			}
 		}
+
 		ms_wait(100);
 	}
 }
