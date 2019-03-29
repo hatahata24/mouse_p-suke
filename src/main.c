@@ -142,15 +142,15 @@ int main(void){
 					break;
 
 				case 3:
-					//----テスト走行----
-					printf("Test Run.\n");
-					test_run();
+					//----デフォルトテスト走行----
+					printf("Defo Test Run.\n");
+					defo_test();
 					break;
 
 				case 4:
-					//----テスト走行2----
-					printf("Test Run2.\n");
-					test_run2();
+					//----物理量テスト走行----
+					printf("Physic Test Run.\n");
+					physic_test();
 					break;
 
 				case 5:
@@ -167,8 +167,8 @@ int main(void){
 
 				case 6:
 					//----テスト走行3----
-					printf("Test Run3.\n");
-					//test_run3();
+					printf("Accel Test Run.\n");
+					//accel_test();
 					sample_course_run();
 					break;
 
@@ -179,7 +179,6 @@ int main(void){
 					break;
 			}
 		}
-
 		ms_wait(100);
 	}
 }

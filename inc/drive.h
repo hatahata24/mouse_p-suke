@@ -151,11 +151,13 @@ void set_positionX2(uint8_t);	//上下左右位置合わせ　初めのケツあ
 
 
 //----走行関数----
+void defo_test(void);			//初期状態でのtableによるテスト走行
+void physic_test(void);			//物理量ベースによるテスト走行
+void accel_test(void);			//既知区間加速によるテスト走行
+void slalom_test(void);			//スラロームによるテスト走行
+
 void simple_run(void);			//超新地走行
 void slalom_run(void);			//スラローム走行
-void test_run(void);			//テスト走行
-void test_run2(void);			//テスト走行2物理量導入
-void test_run3(void);			//テスト走行3既知区間加速
 void sample_course_run(void);	//試験コース走行
 void perfect_run(void);			//本番用走行
 void perfect_slalom(void);		//本番用スラローム走行
