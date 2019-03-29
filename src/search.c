@@ -488,6 +488,70 @@ void searchC2(void){
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//searchD
+// 1区画走行でgoal座標に進む
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void searchD(){
+
+	if(MF.FLAG.SCND){
+		load_map_from_eeprom();
+	}
+
+	//====スタート位置壁情報取得====
+	get_wall_info();										//壁情報の初期化, 後壁はなくなる
+	wall_info &= ~0x88;										//前壁は存在するはずがないので削除する
+	write_map();											//壁情報を地図に記入
+
+	//====歩数マップ・経路作成====
+	r_cnt = 0;												//経路カウンタの初期化
+	make_smap();											//歩数マップ作成
+	make_route();											//最短経路探索（route配列に動作が格納される）
+
+	//====探索走行====
+	do{
+		//----進行----
+		switch(route[r_cnt++]){								//route配列によって進行を決定。経路カウンタを進める
+			//----前進----
+			case 0x88:
+				break;
+			//----右折----
+			case 0x44:
+				rotate_R902();								//右回転
+				break;
+			//----180回転----
+			case 0x22:
+				rotate_1802();								//180度回転
+				if(wall_info & 0x88){
+					set_position2(0);
+				}
+				break;
+			//----左折----
+			case 0x11:
+				rotate_L902();								//左回転
+				break;
+		}
+
+		drive_wait();
+		one_section2();										//前進する
+		drive_wait();
+
+		adv_pos();											//マイクロマウス内部位置情報でも前進処理
+		conf_route();										//最短経路で進行可能か判定
+
+	}while((mouse.x != goal_x) || (mouse.y != goal_y));
+															//現在座標とgoal座標が等しくなるまで実行
+	ms_wait(2000);											//スタートでは***2秒以上***停止しなくてはならない
+	rotate_1802();											//180度回転
+
+	if( ! MF.FLAG.SCND){
+		store_map_in_eeprom();
+	}
+}
+
+
 
 //+++++++++++++++++++++++++++++++++++++++++++++++
 //adv_pos
