@@ -502,25 +502,27 @@ void searchD(){
 	int i = 0;
 	int j = 0;
 
-
 	do {
 		//====前に壁が無い想定で問答無用で前進====
 		half_sectionA2();
 		adv_pos();
 
+		//get_wall_info();													//壁情報の初期化, 後壁はなくなる
+		write_map();														//地図の初期化
+
 		//====歩数等初期化====
-		m_step = r_cnt = 0;															//歩数と経路カウンタの初期化
-		find_pregoal();																	//仮goalまでの歩数マップの初期化
+		m_step = r_cnt = 0;													//歩数と経路カウンタの初期化
+		find_pregoal();														//仮goalまでの歩数マップの初期化
 		if (allmap_comp_flag) {
 			printf("get allmap_comp_flag\n");
 			break;
 		}
 		make_smap2();
-		make_route();																	//最短経路探索(route配列に動作が格納される)
+		make_route();														//最短経路探索(route配列に動作が格納される)
 		//====探索走行====
 		do {
 			//----進行----
-			switch (route[r_cnt++]) {												//route配列によって進行を決定。経路カウンタを進める
+			switch (route[r_cnt++]) {										//route配列によって進行を決定。経路カウンタを進める
 				//----前進----
 			case 0x88:
 				one_sectionU2();
@@ -547,20 +549,20 @@ void searchD(){
 				half_sectionA2();
 				break;
 			}
-			adv_pos();																		//マイクロマウス内部位置情報でも前進処理
+			adv_pos();														//マイクロマウス内部位置情報でも前進処理
 			j++;
-			if (j > 150) break;										//移動マス数が150以上になった場合全面探索を中止
+			if (j > 150) break;												//移動マス数が150以上になった場合全面探索を中止
 
-		} while ((mouse.x != pregoal_x) || (mouse.y != pregoal_y));		//現在座標と仮goal座標が等しくなるまで実行
+		} while ((mouse.x != pregoal_x) || (mouse.y != pregoal_y));			//現在座標と仮goal座標が等しくなるまで実行
 
-		get_wall_info();																	//壁情報の初期化, 後壁はなくなる
-		write_map();																		//地図の初期化
+		get_wall_info();													//壁情報の初期化, 後壁はなくなる
+		write_map();														//地図の初期化
 		half_sectionD2();
 		printf("get pregoal, x = %d, y = %d\n", mouse.x, mouse.y);
 
 		if (j > 150) {
 			printf("j = %d\n", j);
-			break;											//移動マス数が150以上になった場合全面探索を中止
+			break;															//移動マス数が150以上になった場合全面探索を中止
 		}
 		i++;
 		printf("i = %d\n", i);
@@ -958,15 +960,15 @@ void make_route(){
 void find_pregoal()
 {
 	//====変数宣言====
-	uint8_t x, y;																			//for文用変数
-	uint8_t m_temp;																	//マップデータ一時保持
+	uint8_t x, y;															//for文用変数
+	uint8_t m_temp;															//マップデータ一時保持
 	//uint8_t m_temp_sample[16];
-	uint8_t break_flag = 0;																	//未知壁マスを見つけた時のループ脱出フラグ
+	uint8_t break_flag = 0;													//未知壁マスを見つけた時のループ脱出フラグ
 
 	//====歩数マップのクリア====
-	for (y = 0; y <= 0x0f; y++) {													//各Y座標で実行
-		for (x = 0; x <= 0x0f; x++) {												//各X座標で実行
-			smap[y][x] = 0x03e7;													//未記入部分は歩数最大とする
+	for (y = 0; y <= 0x0f; y++) {											//各Y座標で実行
+		for (x = 0; x <= 0x0f; x++) {										//各X座標で実行
+			smap[y][x] = 0x03e7;											//未記入部分は歩数最大とする
 		}
 	}
 
@@ -977,7 +979,7 @@ void find_pregoal()
 	smap[mouse.y][mouse.x] = 0;
 
 	//====歩数カウンタを0にする====
-	m_step = 0;																			//現在記入した最大の歩数となる
+	m_step = 0;																//現在記入した最大の歩数となる
 
 	//====歩数カウンタの重みづけ====
 	int straight = 3;
@@ -986,61 +988,60 @@ void find_pregoal()
 	//====自分の座標にたどり着くまでループ====
 	do {
 		//----マップ全域を捜索----
-		for (y = 0; y <= 0x0f; y++) {												//各Y座標で実行
-			for (x = 0; x <= 0x0f; x++) {											//各X座標で実行
+		for (y = 0; y <= 0x0f; y++) {										//各Y座標で実行
+			for (x = 0; x <= 0x0f; x++) {									//各X座標で実行
 				//----現在最大の歩数を発見したとき----
-				if (smap[y][x] == m_step) {										//歩数格納変数m_stepの値が現在最大の歩数のとき
-					m_temp = map[y][x];											//map配列からマップデータを取り出す
+				if (smap[y][x] == m_step) {									//歩数格納変数m_stepの値が現在最大の歩数のとき
+					m_temp = map[y][x];										//map配列からマップデータを取り出す
 					//----北壁についての処理----
-					if (!(m_temp & 0x08) && y != 0x0f) {						//北壁がなく現在最北端でないとき
-						if (smap[y + 1][x] == 0x03e7) {							//北側が未記入なら
+					if (!(m_temp & 0x08) && y != 0x0f) {					//北壁がなく現在最北端でないとき
+						if (smap[y + 1][x] == 0x03e7) {						//北側が未記入なら
 							smap[y + 1][x] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 							if (((map[y + 1][x] & 0x0f ) << 4) != (map[y + 1][x] & 0xf0)) {		//map内の上位4bitと下位4bitが異なる場合
-								break_flag = 1;											//for文を抜けるフラグを立てて
-								m_step2 = smap[y + 1][x];						//仮goalの歩数を記録
+								break_flag = 1;								//for文を抜けるフラグを立てて
+								m_step2 = smap[y + 1][x];					//仮goalの歩数を記録
 								pregoal_x = x;
-								pregoal_y = y + 1;											//仮goalの座標を記録
+								pregoal_y = y + 1;							//仮goalの座標を記録
 								break;
 							}
 						}
 					}
 					//----東壁についての処理----
-					if (!(m_temp & 0x04) && x != 0x0f) {						//東壁がなく現在最東端でないとき
-						if (smap[y][x + 1] == 0x03e7) {							//東側が未記入なら
+					if (!(m_temp & 0x04) && x != 0x0f) {					//東壁がなく現在最東端でないとき
+						if (smap[y][x + 1] == 0x03e7) {						//東側が未記入なら
 							smap[y][x + 1] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 							if (((map[y][x + 1] & 0x0f) << 4) != (map[y][x + 1] & 0xf0)) {		//map内の上位4bitと下位4bitが異なる場合
-								break_flag = 1;											//for文を抜けるフラグを立てて
-								m_step2 = smap[y][x + 1];						//仮ゴールの歩数を記録
+								break_flag = 1;								//for文を抜けるフラグを立てて
+								m_step2 = smap[y][x + 1];					//仮ゴールの歩数を記録
 								pregoal_x = x + 1;
-								pregoal_y = y;											//仮goalの座標を記録
+								pregoal_y = y;								//仮goalの座標を記録
 								break;
 							}
 						}
 					}
 					//----南壁についての処理----
-					if (!(m_temp & 0x02) && y != 0) {							//南壁がなく現在最南端でないとき
-						if (smap[y - 1][x] == 0x03e7) {							//南側が未記入なら
+					if (!(m_temp & 0x02) && y != 0) {						//南壁がなく現在最南端でないとき
+						if (smap[y - 1][x] == 0x03e7) {						//南側が未記入なら
 							smap[y - 1][x] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 							if (((map[y - 1][x] & 0x0f) << 4) != (map[y - 1][x] & 0xf0)) {		//map内の上位4bitと下位4bitが異なる場合
-								break_flag = 1;											//for文を抜けるフラグを立てて
-								m_step2 = smap[y - 1][x];							//仮ゴールの歩数を記録
+								break_flag = 1;								//for文を抜けるフラグを立てて
+								m_step2 = smap[y - 1][x];					//仮ゴールの歩数を記録
 								pregoal_x = x;
-								pregoal_y = y - 1;											//仮goalの座標を記録
+								pregoal_y = y - 1;							//仮goalの座標を記録
 								break;
 							}
 						}
 					}
 					//----西壁についての処理----
-					if (!(m_temp & 0x01) && x != 0) {							//西壁がなく現在最西端でないとき
-						if (smap[y][x - 1] == 0x03e7) {							//西側が未記入なら
+					if (!(m_temp & 0x01) && x != 0) {						//西壁がなく現在最西端でないとき
+						if (smap[y][x - 1] == 0x03e7) {						//西側が未記入なら
 							smap[y][x - 1] = smap[y][x] + turn;				//次の歩数を書き込む
 							if (((map[y][x - 1] & 0x0f) << 4) != (map[y][x - 1] & 0xf0)) {		//map内の上位4bitと下位4bitが異なる場合
-								break_flag = 1;											//for文を抜けるフラグを立てて
-								m_step2 = smap[y][x - 1];							//仮ゴールの歩数を記録
+								break_flag = 1;								//for文を抜けるフラグを立てて
+								m_step2 = smap[y][x - 1];					//仮ゴールの歩数を記録
 								pregoal_x = x - 1;
-								pregoal_y = y;											//仮goalの座標を記録
-								break;
-							}
+								pregoal_y = y;								//仮goalの座標を記録
+								break;							}
 						}
 					}
 				}
@@ -1063,13 +1064,13 @@ void find_pregoal()
 void make_smap2()
 {
 	//====変数宣言====
-	uint8_t x, y;																			//for文用変数
-	uint8_t m_temp;																	//マップデータ一時保持
+	uint8_t x, y;															//for文用変数
+	uint8_t m_temp;															//マップデータ一時保持
 
 	//====歩数マップのクリア====
-	for (y = 0; y <= 0x0f; y++) {													//各Y座標で実行
-		for (x = 0; x <= 0x0f; x++) {												//各X座標で実行
-			smap[y][x] = 0x03e7;													//未記入部分は歩数最大とする
+	for (y = 0; y <= 0x0f; y++) {											//各Y座標で実行
+		for (x = 0; x <= 0x0f; x++) {										//各X座標で実行
+			smap[y][x] = 0x03e7;											//未記入部分は歩数最大とする
 		}
 	}
 
@@ -1077,7 +1078,7 @@ void make_smap2()
 	smap[pregoal_y][pregoal_x] = 0;
 
 	//====歩数カウンタを0にする====
-	m_step = 0;																			//現在記入した最大の歩数となる
+	m_step = 0;																//現在記入した最大の歩数となる
 
 	//====歩数カウンタの重みづけ====
 	int straight = 3;
@@ -1086,32 +1087,32 @@ void make_smap2()
 	//====自分の座標にたどり着くまでループ====
 	do {
 		//----マップ全域を捜索----
-		for (y = 0; y <= 0x0f; y++) {												//各Y座標で実行
-			for (x = 0; x <= 0x0f; x++) {											//各X座標で実行
+		for (y = 0; y <= 0x0f; y++) {										//各Y座標で実行
+			for (x = 0; x <= 0x0f; x++) {									//各X座標で実行
 				//----現在最大の歩数を発見したとき----
-				if (smap[y][x] == m_step) {										//歩数格納変数m_stepの値が現在最大の歩数のとき
-					m_temp = map[y][x];											//map配列からマップデータを取り出す
+				if (smap[y][x] == m_step) {									//歩数格納変数m_stepの値が現在最大の歩数のとき
+					m_temp = map[y][x];										//map配列からマップデータを取り出す
 					//----北壁についての処理----
-					if (!(m_temp & 0x08) && y != 0x0f) {						//北壁がなく現在最北端でないとき
-						if (smap[y + 1][x] == 0x03e7) {							//北側が未記入なら
+					if (!(m_temp & 0x08) && y != 0x0f) {					//北壁がなく現在最北端でないとき
+						if (smap[y + 1][x] == 0x03e7) {						//北側が未記入なら
 							smap[y + 1][x] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 						}
 					}
 					//----東壁についての処理----
-					if (!(m_temp & 0x04) && x != 0x0f) {						//東壁がなく現在最東端でないとき
-						if (smap[y][x + 1] == 0x03e7) {							//東側が未記入なら
+					if (!(m_temp & 0x04) && x != 0x0f) {					//東壁がなく現在最東端でないとき
+						if (smap[y][x + 1] == 0x03e7) {						//東側が未記入なら
 							smap[y][x + 1] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 						}
 					}
 					//----南壁についての処理----
-					if (!(m_temp & 0x02) && y != 0) {							//南壁がなく現在最南端でないとき
-						if (smap[y - 1][x] == 0x03e7) {							//南側が未記入なら
+					if (!(m_temp & 0x02) && y != 0) {						//南壁がなく現在最南端でないとき
+						if (smap[y - 1][x] == 0x03e7) {						//南側が未記入なら
 							smap[y - 1][x] = smap[y][x] + turn;				//曲線分インクリメントした値を次のマスの歩数マップに書き込む
 						}
 					}
 					//----西壁についての処理----
-					if (!(m_temp & 0x01) && x != 0) {							//西壁がなく現在最西端でないとき
-						if (smap[y][x - 1] == 0x03e7) {							//西側が未記入なら
+					if (!(m_temp & 0x01) && x != 0) {						//西壁がなく現在最西端でないとき
+						if (smap[y][x - 1] == 0x03e7) {						//西側が未記入なら
 							smap[y][x - 1] = smap[y][x] + turn;				//次の歩数を書き込む
 						}
 					}

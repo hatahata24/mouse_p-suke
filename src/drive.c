@@ -1861,6 +1861,7 @@ void search_test(void){
 					get_base();
 
 					searchB2();
+//					searchD();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
