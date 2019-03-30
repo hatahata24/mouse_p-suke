@@ -64,8 +64,8 @@
 //----壁判断閾値（しきい値）----
 #define WALL_BASE_FR 	15//20			//前壁右センサ
 #define WALL_BASE_FL 	50//100			//前壁左センサ
-#define WALL_BASE_R		150			//右壁センサ
-#define WALL_BASE_L 	50     		//左壁センサ
+#define WALL_BASE_R		200				//右壁センサ
+#define WALL_BASE_L 	80     		//左壁センサ
 
 //----制御閾値（しきい値）----
 #define CTRL_BASE_L		50//100		//左制御閾値

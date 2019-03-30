@@ -1872,6 +1872,26 @@ void search_test(void){
 
 					break;
 				case 6:
+					//----直線優先走行をするための1次走行----
+					printf("First Run to Straight Priority Run.\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+//					searchD();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchD2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
 					break;
 				case 7:
 					break;
