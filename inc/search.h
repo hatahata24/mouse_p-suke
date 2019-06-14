@@ -102,6 +102,7 @@ void searchC();											//スラローム探索走行
 void searchC2();										//スラローム探索走行
 void searchD();											//全面探索走行
 void searchD2();											//全面探索走行
+void searchD3();											//全面探索走行
 
 void adv_pos();											//マウスの位置情報を前進
 void conf_route();										//次ルートの確認

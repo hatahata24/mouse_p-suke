@@ -162,7 +162,7 @@ int main(void){
 					break;
 
 				case 6:
-					//----テスト走行3----
+					//----サンプルコース走行----
 					printf("Sample Course Run.\n");
 					sample_course_run();
 					break;

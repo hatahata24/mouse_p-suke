@@ -1850,30 +1850,8 @@ void search_test(void){
 
 					break;
 				case 5:
-					//----直線優先走行をするための1次走行----
-					printf("First Run to Straight Priority Run.\n");
-
-					MF.FLAG.SCND = 0;
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					set_positionX2(0);
-					get_base();
-
-					searchB2();
-//					searchD();
-					ms_wait(500);
-
-					goal_x = goal_y = 0;
-					searchD();
-
-					goal_x = GOAL_X;
-					goal_y = GOAL_Y;
-
-					break;
-				case 6:
-					//----直線優先走行をするための1次走行----
-					printf("First Run to Straight Priority Run.\n");
+					//----スラローム走行&全面探索スラローム走行----
+					printf("Slalom Run & All Map Run.\n");
 
 					MF.FLAG.SCND = 0;
 					goal_x = GOAL_X;
@@ -1883,11 +1861,31 @@ void search_test(void){
 					get_base();
 
 					searchC2();
-//					searchD();
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
 					searchD2();
+
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					break;
+				case 6:
+					//----スラローム走行&全面スラローム連続探索走行----
+					printf("Slalom Run & All Map Run(Continuous).\n");
+
+					MF.FLAG.SCND = 0;
+					goal_x = GOAL_X;
+					goal_y = GOAL_Y;
+
+					set_positionX2(0);
+					get_base();
+
+					searchC2();
+					ms_wait(500);
+
+					goal_x = goal_y = 0;
+					searchD3();
 
 					goal_x = GOAL_X;
 					goal_y = GOAL_Y;

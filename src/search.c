@@ -589,11 +589,14 @@ void searchD(){
 }
 
 
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//searchD2
+// 未知壁を含むマスを仮goal座標とし、スラロームで全マスに進む。毎回仮goalにつくたびに半区画減速
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
 void searchD2(){
 
-	if(MF.FLAG.SCND){
-		load_map_from_eeprom();
-	}
 	int i = 0;
 	int j = 0;
 
@@ -618,10 +621,8 @@ void searchD2(){
 		}
 
 		//====前に壁が無い想定で問答無用で前進====
-//		half_sectionA2();
 		adv_pos();
 
-		//get_wall_info();													//壁情報の初期化, 後壁はなくなる
 		write_map();														//地図の初期化
 
 		//====歩数等初期化====
@@ -678,6 +679,92 @@ void searchD2(){
 		printf("i = %d\n", i);
 
 	} while (i < 130);
+	printf("i = %d\n", i);
+	printf("fin\n");
+}
+
+
+//+++++++++++++++++++++++++++++++++++++++++++++++
+//searchD3
+// 未知壁を含むマスを仮goal座標とし、スラローム連続走行で全マスに進む。仮goalを連続的に変化させる。全面探索終了後は半区画減速
+// 引数：なし
+// 戻り値：なし
+//+++++++++++++++++++++++++++++++++++++++++++++++
+void searchD3(){
+
+	int i = 0;
+	int j = 0;
+
+	do {
+		if(i == 0){
+			//====前に壁が無い想定で問答無用で前進====
+			half_sectionA2();
+			adv_pos();
+			write_map();														//地図の初期化
+
+			//====歩数等初期化====
+			m_step = r_cnt = 0;													//歩数と経路カウンタの初期化
+			find_pregoal();														//仮goalまでの歩数マップの初期化
+			make_smap2();
+			make_route();														//最短経路探索(route配列に動作が格納される)
+		}
+
+		//====探索走行====
+		do {
+			//----進行----
+			switch (route[r_cnt++]) {										//route配列によって進行を決定。経路カウンタを進める
+				//----前進----
+			case 0x88:
+				one_sectionU2();
+				break;
+				//----右折----
+			case 0x44:
+				slalom_R90();
+				break;
+				//----180回転----
+			case 0x22:
+				half_sectionD2();
+				rotate_1802();
+				if(wall_info & 0x88){
+					set_position2(0);
+				}
+				half_sectionA2();
+				break;
+				//----左折----
+			case 0x11:
+				slalom_L90();
+				break;
+			}
+			adv_pos();														//マイクロマウス内部位置情報でも前進処理
+			j++;
+			if (j > 150) break;												//移動マス数が150以上になった場合全面探索を中止
+
+		} while ((mouse.x != pregoal_x) || (mouse.y != pregoal_y));			//現在座標と仮goal座標が等しくなるまで実行
+
+		get_wall_info();													//壁情報の初期化, 後壁はなくなる
+		write_map();														//地図の初期化
+		//printf("get pregoal, x = %d, y = %d\n", mouse.x, mouse.y);
+
+		//====歩数等初期化====
+		m_step = r_cnt = 0;													//歩数と経路カウンタの初期化
+
+		find_pregoal();														//仮goalまでの歩数マップの初期化
+		if (allmap_comp_flag) {
+			printf("get allmap_comp_flag\n");
+			half_sectionD2();
+			break;
+		}
+		make_smap2();
+		make_route();														//最短経路探索(route配列に動作が格納される)
+
+		if (j > 150) {
+			printf("j = %d\n", j);
+			break;															//移動マス数が150以上になった場合全面探索を中止
+		}
+		i++;
+		//printf("i = %d\n", i);
+
+	} while (i < 130);														//仮goalへの到着が130回以上になった場合全面探索を中止
 	printf("i = %d\n", i);
 	printf("fin\n");
 }
