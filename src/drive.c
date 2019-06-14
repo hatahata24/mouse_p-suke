@@ -2782,6 +2782,8 @@ void perfect_slalom(void){
 					printf("First Run.\n");
 					MF.FLAG.SCND = 0;
 					MF.FLAG.ACCL2 = 0;
+					MF.FLAG.STRAIGHT = 0;
+
 					goal_x = 7;
 					goal_y = 7;
 
@@ -2792,7 +2794,8 @@ void perfect_slalom(void){
 					ms_wait(500);
 
 					goal_x = goal_y = 0;
-					searchC2();
+					//searchC2();
+					searchD3();
 
 					goal_x = 7;
 					goal_y = 7;
@@ -2803,6 +2806,8 @@ void perfect_slalom(void){
 					printf("First Run. (Continuous)\n");
 					MF.FLAG.SCND = 1;
 					MF.FLAG.ACCL2 = 1;
+					MF.FLAG.STRAIGHT = 0;
+
 					accel_hs = 3000;
 					speed_max_hs = 600;
 					goal_x = 7;
@@ -2826,6 +2831,8 @@ void perfect_slalom(void){
 					printf("Second Run. (Continuous)\n");
 					MF.FLAG.SCND = 1;
 					MF.FLAG.ACCL2 = 1;
+					MF.FLAG.STRAIGHT = 1;
+
 					accel_hs = 3000;
 					speed_max_hs = 800;
 					goal_x = 7;
@@ -2849,6 +2856,8 @@ void perfect_slalom(void){
 					printf("First Run. (Slalom)\n");
 					MF.FLAG.SCND = 1;
 					MF.FLAG.ACCL2 = 1;
+					MF.FLAG.STRAIGHT = 1;
+
 					accel_hs = 3000;
 					speed_max_hs = 1000;
 					goal_x = 7;
@@ -2872,6 +2881,8 @@ void perfect_slalom(void){
 					printf("Second Run. (Slalom)\n");
 					MF.FLAG.SCND = 1;
 					MF.FLAG.ACCL2 = 1;
+					MF.FLAG.STRAIGHT = 1;
+
 					accel_hs = 3000;
 					speed_max_hs = 1100;
 					goal_x = 7;

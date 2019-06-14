@@ -750,7 +750,7 @@ void searchD3(){
 
 		find_pregoal();														//仮goalまでの歩数マップの初期化
 		if (allmap_comp_flag) {
-			printf("get allmap_comp_flag\n");
+			//printf("get allmap_comp_flag\n");
 			half_sectionD2();
 			break;
 		}
@@ -758,15 +758,21 @@ void searchD3(){
 		make_route();														//最短経路探索(route配列に動作が格納される)
 
 		if (j > 150) {
-			printf("j = %d\n", j);
+			//printf("j = %d\n", j);
 			break;															//移動マス数が150以上になった場合全面探索を中止
 		}
 		i++;
 		//printf("i = %d\n", i);
 
 	} while (i < 130);														//仮goalへの到着が130回以上になった場合全面探索を中止
-	printf("i = %d\n", i);
-	printf("fin\n");
+	//printf("i = %d\n", i);
+	//printf("fin\n");
+
+	if( ! MF.FLAG.SCND){
+		store_map_in_eeprom();
+	}
+
+
 }
 
 
