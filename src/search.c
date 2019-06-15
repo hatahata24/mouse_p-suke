@@ -737,7 +737,7 @@ void searchD3(){
 			}
 			adv_pos();														//マイクロマウス内部位置情報でも前進処理
 			j++;
-			if (j > 150) break;												//移動マス数が150以上になった場合全面探索を中止
+			if (j > 250) break;												//移動マス数が250以上になった場合全面探索を中止
 
 		} while ((mouse.x != pregoal_x) || (mouse.y != pregoal_y));			//現在座標と仮goal座標が等しくなるまで実行
 
@@ -757,16 +757,19 @@ void searchD3(){
 		make_smap2();
 		make_route();														//最短経路探索(route配列に動作が格納される)
 
-		if (j > 150) {
+		if (j > 250) {
 			//printf("j = %d\n", j);
-			break;															//移動マス数が150以上になった場合全面探索を中止
+			break;															//移動マス数が250以上になった場合全面探索を中止
 		}
 		i++;
 		//printf("i = %d\n", i);
 
-	} while (i < 130);														//仮goalへの到着が130回以上になった場合全面探索を中止
+	} while (i < 250);														//仮goalへの到着が130回以上になった場合全面探索を中止
 	//printf("i = %d\n", i);
 	//printf("fin\n");
+
+	ms_wait(2000);
+	rotate_1802();											//180度回転
 
 	if( ! MF.FLAG.SCND){
 		store_map_in_eeprom();
